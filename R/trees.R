@@ -167,7 +167,7 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
   col_id <- enquo(col_id)
   col_parent_id <- enquo(col_parent_id)
   col_lemma <- enquo(col_lemma)
-  join_by_parent = set_names(quo_name(col_id), quo_name(col_parent_id))
+  join_by_parent = rlang::set_names(quo_name(col_id), quo_name(col_parent_id))
 
 
   # Escape slashes (or other characters used as delimiter) in lemmata
@@ -233,7 +233,7 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
   parent_id <- enquo(parent_id)
 
   # Equavalent to c("id" = "parent_id"), note the changed field order
-  join_semi = set_names(quo_name(parent_id), quo_name(id))
+  join_semi = rlang::set_names(quo_name(parent_id), quo_name(id))
 
   selected = tibble()
 

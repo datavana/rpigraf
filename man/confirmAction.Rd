@@ -9,3 +9,4 @@ confirmAction()
 \description{
 Ask user to confirm script execution
 }
+\keyword{internal}

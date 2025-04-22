@@ -36,10 +36,10 @@ To warm up, get some article data.
 
 ```
 # Get an article list
-articles <- fetch_table("articles", columns=c("name"), db="epi_playground", maxpages=2)
+articles <- fetch_table("articles", columns = c("name"), db = "epi_movies", maxpages = 2)
 
 # Get a single article by its ID
-article <- fetch_entity("articles-1", db="epi_playground")
+article <- fetch_entity("articles-1", db = "epi_movies")
 
 ```
 
@@ -47,7 +47,7 @@ You can combine fetching an article list, and the full entity data in the next s
 
 ```
 # Get all data for the first articles page (limit each page to 5 articles)
-articles <- fetch_table("articles", params=c(limit=5), db="epi_playground", maxpages=1) |> 
+articles <- fetch_table("articles", params=c(limit=5), db="epi_movies", maxpages=1) |> 
   fetch_entity()
 ```
 
@@ -55,16 +55,24 @@ articles <- fetch_table("articles", params=c(limit=5), db="epi_playground", maxp
 The data come in the Relation-Article-Model-format. 
 That means all pieces of an article are returned as rows.  
 Filter the rows to dive into a specific slice of the article data.
+
 For example, extract the property tree from the articles:
 
 ```
-props <- articles |> 
-  filter(table=="properties") |> 
+props <- epi |> 
+  filter(table == "properties") |> 
   select_if(~ ! all(is.na(.))) |> 
   distinct() |> 
-  arrange(propertytype,lft) 
-  select(lemma,level,lft,rght,id,parent_id) |> 
-  tree_add_path(id, parent_id,id)
+  arrange(type, lft) 
+```
+
+In case properties are organised in a tree
+(they have a parent_id), you can add the lemma path:
+
+```
+props <- props |> 
+  select(lemma, level, lft, rght, id, parent_id) |> 
+  tree_add_path(id, parent_id, id)
 
 ```
 
@@ -72,20 +80,20 @@ props <- articles |>
 ## Writing data
 
 You can create or update data with api_patch(). The function expects data in the Relational Article Model-format.
-The following command creates one categorie "Hansestädte" with the IRI "properties/topics/hanseatic" in the database epi_example.
+The following command creates one categorie "Western" with the IRI "properties/categories/western" in the database epi_movies.
 
 ```
 properties <- tibble(
-  id = c("properties/topics/hanseatic"),
-  lemma = c("Hansestädte")
+  id = c("properties/categories/western"),
+  lemma = c("Western")
 )
 
-api_patch(properties, "epi_example")
+api_patch(properties, "epi_movies")
 
 ```
 
 If a property with the given IRI path already exists, it will not be created, but updated. This way you can change the labels.
 
-The property types, "topics" in the example,  need to be configured in Epigraf. 
+The property types, "categories" in the example,  need to be configured in Epigraf. 
 Thereafter, you can see the new properties in Epigraf by clicking the categories menu button. 
 

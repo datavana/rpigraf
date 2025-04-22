@@ -25,7 +25,7 @@ confirmAction <- function() {
 
 #' Check whether the URL is on a local server
 #'
-#' @params server
+#' @param server The server URL
 #' @keywords internal
 isLocalServer <- function(server) {
   return (
@@ -40,8 +40,8 @@ isLocalServer <- function(server) {
 #'
 #' @keywords internal
 #'
-#' @param str
-#' @return
+#' @param str The input character value
+#' @return The output character value
 unescape_html <- function(str){
   if (is.na(str)) {
     return (str)

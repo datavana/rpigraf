@@ -13,8 +13,11 @@ Imports:
     cli,
     lifecycle
 Depends: 
+    rlang,
     dplyr,
     tidyr,
+    readr,
+    stringr,
     progressr,
     jsonlite,
     httr

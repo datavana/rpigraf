@@ -4,12 +4,14 @@
 \alias{map_sections_to_ram}
 \title{Create RAM rows for section data}
 \usage{
-map_sections_to_ram(df, mapping)
+map_sections_to_ram(df, mapping, vals)
 }
 \arguments{
 \item{df}{The source data frame}
 
 \item{mapping}{The mapping of source columns to RAM columns}
+
+\item{Fixed}{values}
 }
 \value{
 RAM rows

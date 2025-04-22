@@ -6,6 +6,13 @@
 \usage{
 unescape_html(str)
 }
+\arguments{
+\item{str}{The input character value}
+}
+\value{
+The output character value
+}
 \description{
 Remove HTML entities
 }
+\keyword{internal}

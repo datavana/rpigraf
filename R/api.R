@@ -250,7 +250,6 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
 
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
 
-
   data = data.frame()
   page = 1
 
@@ -272,17 +271,15 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
       {
 
         if (verbose)  {
-          resp <- GET(url, set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+          resp <- httr::GET(url, httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
         } else {
-          resp <- GET(url)
+          resp <- httr::GET(url)
         }
-
 
         if (resp$status_code == 200) {
-          body <- content(resp,as="text")
-          rows <- suppressWarnings(read_delim(I(body), delim=";", col_types = cols(.default = col_character())))
+          body <- httr::content(resp,as="text")
+          rows <- suppressWarnings(readr::read_delim(I(body), delim=";", col_types = cols(.default = col_character())))
         }
-
 
         else if (resp$status_code == 404) {
           message <- "No more data found."

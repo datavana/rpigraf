@@ -6,28 +6,35 @@
 \usage{
 df_to_ram(
   df,
-  item = c(),
-  section = c(),
-  article = c(),
-  project = c(),
-  vals = list(),
+  project.cols = c(),
+  project.fill = c(),
+  article.cols = c(),
+  article.fill = c(),
+  section.cols = c(),
+  section.fill = c(),
+  item.cols = c(),
+  item.fill = c(),
   compile = FALSE
 )
 }
 \arguments{
 \item{df}{A data frame with the source data.}
 
-\item{item}{A named list. Names are RAM columns, values source columns.}
+\item{project.cols}{A named list. Names are RAM columns, values source columns.}
 
-\item{section}{A named list. Names are RAM columns, values source columns.}
+\item{project.fill}{A named list with fixed values for the rows.}
 
-\item{article}{A named list. Names are RAM columns, values source columns.}
+\item{article.cols}{A named list. Names are RAM columns, values source columns.}
 
-\item{project}{A named list. Names are RAM columns, values source columns.}
+\item{article.fill}{A named list with fixed values for the rows.}
 
-\item{vals}{A named list with fixed values for the rows.
-Names on the first level correspond to the table (item, section, article, project).
-Names on the second level correspond the the field names.}
+\item{section.cols}{A named list. Names are RAM columns, values source columns.}
+
+\item{section.fill}{A named list with fixed values for the rows.}
+
+\item{item.cols}{A named list. Names are RAM columns, values source columns.}
+
+\item{item.fill}{A named list with fixed values for the rows.}
 
 \item{compile}{Whether to return compiled rows or store them in the attributes of the input data frame.}
 }

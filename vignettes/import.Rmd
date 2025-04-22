@@ -18,36 +18,80 @@ knitr::opts_chunk$set(
 )
 
 library(eprgraf)
+api_setup("http://localhost", "devel")
 
 ```
 
 Epigraf expects data in a format called Relational Article Model (RAM).
 
 
-## Map data to the RAM
+## Upload data
+
+### Map data to the RAM
 
 ```{r}
 
 ds <- tribble(
-  ~case, ~title, ~text,
-  1, "Case 01", "Happy New Year!",
-  2, "Case 02", "Happy Easter!",
-  3, "Case 03", "Happy Birthday!"
+  ~case, ~title, ~genre, ~text,
+  "011", "Westworld", "Western", "In a futuristic amusement park, androids populate themed worlds like the Wild West.",
+  "012", "Yellowstone", "Western", "Ranch owner John Dutton battles to protect his family's massive Montana cattle ranch.",
+  "013", "Once Upon a Time in the West", "Western",  "A mysterious harmonica-playing stranger teams up with a bandit."
 )
 
 epi <- ds |> 
   df_to_ram(
-    item    = c("content" = "text"),
-    article = c("id" = "case", "signature" = "case", "name" = "title"),
+  
+    # The project is fixed (Movies)
+    project.cols = c(),
+    project.fill = c("id" = "movies", "name" = "Movies", "signature"="movies", "type" = "default"),
+    
+    # The article data is taken from the columns (case, title)
+    article.cols = c("id" = "case", "signature" = "case", "name" = "title"),
+    article.fill = c("type" = "default"),
+    
+    # The section is fixed
+    section.cols = c(),
+    section.fill = c("type" = "text", "name" = "Abstract"),
+        
+    # The item content is taken from the columns (text)
+    item.cols    = c("content" = "text"),
+    item.fill    = c("type" = "text"),
+
     compile = T
   )
 
 ```
 
-## Upload data
-
+### Path data into the database
 
 ```{r}
-api_setup("https://epigraf.inschriften.net/", "MYACCESSTOKEN")
-api_patch(epi, "epi_example")
+api_patch(epi, "epi_movies")
+```
+
+
+## Download data
+
+### Fetch data
+```{r}
+epi <- fetch_table("articles", c("id", "name"), db = "epi_movies") |> 
+  fetch_entity()
+
+```
+
+### Work with RAM data
+```{r}
+# Extract all distinct properties
+props <- epi |> 
+  filter(table == "properties") |> 
+  select_if(~ ! all(is.na(.))) |> 
+  distinct() |> 
+  arrange(type, lft) 
+
+# In case properties are organised in a tree
+# (they have a parent_id), you can add the lemma path:
+
+props <- props |> 
+  select(lemma, level, lft, rght, id, parent_id) |> 
+  tree_add_path(id, parent_id, id)
+
 ```

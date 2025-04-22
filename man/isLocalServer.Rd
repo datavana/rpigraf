@@ -6,6 +6,10 @@
 \usage{
 isLocalServer(server)
 }
+\arguments{
+\item{server}{The server URL}
+}
 \description{
 Check whether the URL is on a local server
 }
+\keyword{internal}

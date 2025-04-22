@@ -15,3 +15,4 @@ A cleaned list
 \description{
 Remove NA entries from a list
 }
+\keyword{internal}

@@ -39,14 +39,14 @@ epi_create_iri <- function(table, type, fragment, split=F) {
 #' @export
 epi_clean_irifragment <- function(fragment) {
   fragment %>%
-    str_to_lower() %>%
-    str_replace_all(
+    stringr::str_to_lower() %>%
+    stringr::str_replace_all(
       c("ä"="ae","ö"="oe","ü"="ue","ß"="ss")
     ) %>%
-    str_replace_all("[^a-z0-9_~-]","-") %>%
-    str_replace_all("-+","-") %>%
-    str_remove("^-") %>%
-    str_remove("-$")
+    stringr::str_replace_all("[^a-z0-9_~-]","-") %>%
+    stringr::str_replace_all("-+","-") %>%
+    stringr::str_remove("^-") %>%
+    stringr::str_remove("-$")
 }
 
 #' Check whether the provided vector contains a valid IRI path

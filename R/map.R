@@ -1,13 +1,14 @@
 #' Map a data frame to the Relational Article Model
 #'
 #' @param df A data frame with the source data.
-#' @param item A named list. Names are RAM columns, values source columns.
-#' @param section A named list. Names are RAM columns, values source columns.
-#' @param article A named list. Names are RAM columns, values source columns.
-#' @param project A named list. Names are RAM columns, values source columns.
-#' @param vals A named list with fixed values for the rows.
-#'             Names on the first level correspond to the table (item, section, article, project).
-#'             Names on the second level correspond the the field names.
+#' @param project.cols A named list. Names are RAM columns, values source columns.
+#' @param project.fill A named list with fixed values for the rows.
+#' @param article.cols A named list. Names are RAM columns, values source columns.
+#' @param article.fill A named list with fixed values for the rows.
+#' @param section.cols A named list. Names are RAM columns, values source columns.
+#' @param section.fill A named list with fixed values for the rows.
+#' @param item.cols A named list. Names are RAM columns, values source columns.
+#' @param item.fill A named list with fixed values for the rows.
 #' @param compile Whether to return compiled rows or store them in the attributes of the input data frame.
 #' @return A data frame. When compile is TRUE, ready to be imported into Epigraf.
 #'         Otherwise with rows in the attributes of the data frame.
@@ -29,12 +30,19 @@
 #'  )
 #'
 #' @export
-df_to_ram <- function(df, item = c(), section = c(), article = c(), project = c(), vals = list(), compile = FALSE) {
+df_to_ram <- function(
+    df,
+    project.cols = c(), project.fill = c(),
+    article.cols = c(), article.fill = c(),
+    section.cols = c(), section.fill = c(),
+    item.cols = c(), item.fill = c(),
+    compile = FALSE
+) {
 
-  df <- map_projects_to_ram(df, project)
-  df <- map_articles_to_ram(df, article)
-  df <- map_sections_to_ram(df, section)
-  df <- map_items_to_ram(df, item)
+  df <- map_projects_to_ram(df, project.cols, project.fill)
+  df <- map_articles_to_ram(df, article.cols, article.fill)
+  df <- map_sections_to_ram(df, section.cols, section.fill)
+  df <- map_items_to_ram(df, item.cols, item.fill)
 
   if (compile ) {
     return(ram_compile(df))
@@ -49,8 +57,9 @@ df_to_ram <- function(df, item = c(), section = c(), article = c(), project = c(
 #'
 #' @param df The source data frame
 #' @param mapping The mapping of source columns to RAM columns
+#' @param Fixed values
 #' @return RAM rows
-map_projects_to_ram <- function(df, mapping) {
+map_projects_to_ram <- function(df, mapping, vals) {
   # Project rows
   mapping <- merge_vectors(mapping, c("id" = "project.id", "type" = "project.type"))
 
@@ -60,15 +69,20 @@ map_projects_to_ram <- function(df, mapping) {
 
   rows <- as.data.frame(rows[, mapping, drop = FALSE])
   names(rows) <- names(mapping)
+
+  for (name in names(vals)) {
+    rows[[name]] <- vals[[name]]
+  }
+
   rows$id <- epi_create_iri("projects", rows$type, rows$id)
   rows$type <- NULL
-  cols_projects <- colnames(rows)
+  cols <- colnames(rows)
 
   df$.project <- rows$id
   rows$.project <- df$.project
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(cols_projects, collapse=",")
+  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
 
   df <- ram_add(df, rows)
   df
@@ -80,8 +94,9 @@ map_projects_to_ram <- function(df, mapping) {
 #'
 #' @param df The source data frame
 #' @param mapping The mapping of source columns to RAM columns
+#' @param Fixed values
 #' @return RAM rows
-map_articles_to_ram <- function(df, mapping) {
+map_articles_to_ram <- function(df, mapping, vals) {
 
 
   if (!(".project" %in% colnames(df))) {
@@ -99,16 +114,20 @@ map_articles_to_ram <- function(df, mapping) {
   rows <- as.data.frame(rows[, mapping, drop = FALSE])
   names(rows) <- names(mapping)
 
+  for (name in names(vals)) {
+    rows[[name]] <- vals[[name]]
+  }
+
   rows$id <- epi_create_iri("articles", rows$type, rows$id)
   rows$type <- NULL
-  cols_articles <- colnames(rows)
+  cols <- colnames(rows)
 
   df$.article <- rows$id
   rows$.project <- df$.project
   rows$.article <- df$.article
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(cols_articles, collapse=",")
+  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
 
   df <- ram_add(df, rows)
   df
@@ -120,8 +139,9 @@ map_articles_to_ram <- function(df, mapping) {
 #'
 #' @param df The source data frame
 #' @param mapping The mapping of source columns to RAM columns
+#' @param Fixed values
 #' @return RAM rows
-map_sections_to_ram <- function(df, mapping) {
+map_sections_to_ram <- function(df, mapping, vals) {
 
   if (!(".project" %in% colnames(df))) {
     .craft_stop("Please, map a project first")
@@ -141,10 +161,15 @@ map_sections_to_ram <- function(df, mapping) {
 
   rows <- as.data.frame(rows[, mapping, drop = FALSE])
   names(rows) <- names(mapping)
+
+  for (name in names(vals)) {
+    rows[[name]] <- vals[[name]]
+  }
+
   rows$id <- epi_create_iri("sections", rows$type, paste0(epi_iri_parent(rows$articles_id),rows$id))
   rows$type <- NULL
 
-  cols_sections <- colnames(rows)
+  cols <- colnames(rows)
 
   df$.section <- rows$id
   rows$.project <- df$.project
@@ -152,7 +177,7 @@ map_sections_to_ram <- function(df, mapping) {
   rows$.section <- df$.section
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(cols_sections, collapse=",")
+  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
 
   df <- ram_add(df, rows)
   df
@@ -164,8 +189,9 @@ map_sections_to_ram <- function(df, mapping) {
 #'
 #' @param df The source data frame
 #' @param mapping The mapping of source columns to RAM columns
+#' @param Fixed values
 #' @return RAM rows
-map_items_to_ram <- function(df, mapping) {
+map_items_to_ram <- function(df, mapping, vals) {
 
   if (!(".project" %in% colnames(df))) {
     .craft_stop("Please, map a project first")
@@ -191,9 +217,14 @@ map_items_to_ram <- function(df, mapping) {
 
   rows <- as.data.frame(rows[, mapping, drop = FALSE])
   names(rows) <- names(mapping)
+
+  for (name in names(vals)) {
+    rows[[name]] <- vals[[name]]
+  }
+
   rows$id <- epi_create_iri("items", rows$type, paste0(epi_iri_parent(rows$sections_id),rows$id))
   rows$type <- NULL
-  cols_items <- colnames(rows)
+  cols <- colnames(rows)
 
   df$.item <- rows$id
   rows$.project <- df$.project
@@ -202,7 +233,7 @@ map_items_to_ram <- function(df, mapping) {
   rows$.item <- df$.item
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(cols_items, collapse=",")
+  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
 
   df <- ram_add(df, rows)
   df
