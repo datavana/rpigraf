@@ -120,7 +120,7 @@ epi <- api_fetch("articles", db = "epi_movies")
 
 ```
 
-### Work with RAM data
+### Map RAM data to articles and their annotations
 ```{r eval=FALSE}
 
 # Get articles with some item data
