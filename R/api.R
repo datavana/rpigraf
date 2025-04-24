@@ -52,7 +52,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
     url$query = merge_lists(list(url$query,as.list(query)))
   }
 
-  if (!str_starts(endpoint,"/")) {
+  if (!stringr::str_starts(endpoint,"/")) {
     endpoint <-  paste0("/", endpoint)
   }
 
@@ -60,7 +60,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
   if (is.na(extension)) {
     extension = ""
   }
-  else if (!is.na(extension) && !str_starts(extension,"\\.")) {
+  else if (!is.na(extension) && !stringr::str_starts(extension,"\\.")) {
     extension <-  paste0(".", extension)
   }
 

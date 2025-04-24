@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
+library(tidyverse)
 library(dplyr)
 library(tibble)
 library(eprgraf)
@@ -90,6 +91,6 @@ distill_articles(epi, c("signature", "name"), item.type = "categories", property
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 
-distill_properties(epi,"annotations", annos = TRUE)
+distill_properties(epi, "annotations", annos = TRUE)
 
 ```

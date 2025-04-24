@@ -16,7 +16,7 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
     extract.cols <- c(extract.cols, c(paste0("properties.",property.cols)))
   }
 
-  if (!missing(item.type) && (length(extract.cols) > 0)) {
+  if (length(extract.cols) > 0) {
     items <- epi_extract_long(df, "items", item.type)
 
     if (!missing(property.cols)) {
@@ -58,8 +58,13 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   colnames(props)[1] <- "path"
 
   if (annos) {
-    annos <- distill_links(df, type, c("segment"))
-    props <- dplyr::left_join(props, annos, by=c("id"="to_id"))
+
+    # links
+    links <- distill_links(df, type, c("segment"))
+    props <- dplyr::left_join(props, links, by=c("id"="to_id"))
+
+    # TODO: items
+    #items <- distill_articles(df, property.cols = c("id"))
   }
 
   props
