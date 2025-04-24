@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
+library(httr)
 library(tidyverse)
 library(dplyr)
 library(tibble)
@@ -27,6 +28,32 @@ api_setup("http://localhost", "devel")
 ```
 
 Epigraf expects data in a format called Relational Article Model (RAM).
+
+RAM is a model to represent documents in tables. 
+It consists of the following tables:
+
+- Projects: Each article is assigned to a project.
+- Articles: Each article contains sections.
+- Sections: Each section contains items.
+- Items: Items contain the article content (text, references to categories etc.)
+- Categories: Vocabularies used for tagging items and annotating text.
+
+Each row in a table is identified by an IRI (Internationalized Resource Identifier),
+which is a worldwide unique identificator. 
+Understanding the IRI concept of the RAM model is crucial for data transfers:
+
+- Add new data: When you import data with IRIs not yet present in the database,
+  new rows will be added.
+- Update data:  When you import data with IRIs that already exist, 
+  the existing rows will be updated.
+  
+Each IRI used in the RAM consists of the server name (e.g. "https://epigraf.uni-muenster.de/")
+and an IRI path (e.g. "properties/genres/western"). 
+
+The IRI path is stored in the database tables and consists of three elements:
+- Table: One of projects, articles, sections, items, or categories.
+- Type: The row type. For example, you can distinguish different category systems by their type.
+- Fragment: An alphanumeric value used to identify the row in the table.
 
 
 ## Upload data
@@ -42,26 +69,35 @@ ds <- tribble(
   "013", "Once Upon",   "Western", "A mysterious harmonica-playing stranger teams up with a bandit."
 )
 
-# The project is named "Movies". The type defaults to "default".
-ds <- df_to_ram(ds, project.fill = c("fragment" = "movies", "name" = "Movies", "signature"="movies"))
+
+# Project: As we don't have data about the project in the source data frame, we fill in some values. 
+# The project is named "Movies". 
+# The type defaults to "default" (optional, if you omit it, "default" is used anyways)
+ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "name" = "Movies", "signature"="movies"))
 
 # Article data is taken from the columns: case, title. The type defaults to "default".
-ds <- df_to_ram(ds, article.cols = c("fragment" = "case", "signature" = "case", "name" = "title"))
-    
-# The text section is named "Abstract"
-ds <- df_to_ram(ds, section.fill = c("type" = "text", "name" = "Abstract"))
+ds <- craft_articles(ds, cols=c("type" ="default", "fragment" = "case", "signature" = "case", "name" = "title"))
 
-# The text item data is taken from the columns: text. The type is fixed to "text".
-ds <- df_to_ram(ds, item.fill = c("type" = "text"), item.cols = c("content" = "text"))
+# The text section is named "Abstract". 
+# We omit the fragment, it is automatically added and derived from the article fragment.
+# You need a fragment, if you have multiple sections of the same type.
+ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
 
-# The categories section is named "Genres". The type is fixed to "categories".
-ds <- df_to_ram(ds, section.fill = c("type" = "categories", "name" = "Genres"))
+# The text item data is taken from the columns: text. 
+# The type is fixed to "text". 
+# We omit the fragment, it is automatically added and derived from the section fragment.
+# You need a fragment, if you have multiple items of the same type.
+ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
+
+# The categories section is named "Genres". 
+# The type is fixed to "categories".
+ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
         
 # The categories property content is taken from the columns: genre.
-ds <- df_to_ram(ds, property.cols = c("fragment"="genre", "lemma" = "genre"), property.fill = c("type" = "categories"))
+ds <- craft_properties(ds, cols = c("fragment"="genre", "lemma" = "genre"), fill = c("type" = "categories"))
 
 # The categories item content is taken from the columns: .property was created by the property mapping beforehand.
-ds <- df_to_ram(ds, item.cols = c("properties_id" = ".property"), item.fill = c("type" = "categories"))
+ds <- craft_items(ds, cols = c("properties_id" = ".property"), fill = c("type" = "categories"))
 
 # Compile the stacked ram rows
 epi <- ram_compile(ds)
@@ -87,10 +123,16 @@ epi <- api_fetch("articles", db = "epi_movies")
 ### Work with RAM data
 ```{r eval=FALSE}
 
+# Get articles with some item data
 distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 
+# Get the properties used in the articles
+distill_properties(epi, "categories")
+
+# Get the annotations for a property type
+distill_properties(epi, "categories", annos = TRUE)
 distill_properties(epi, "annotations", annos = TRUE)
 
 ```

@@ -1,4 +1,7 @@
-#' Map a data frame to the Relational Article Model
+#' Map a data frame to the Relational Article Model (RAM)
+#'
+#' Calls craft methods for projects, articles, sections, items and properties.
+#' Alternatively, you can use the craft methods directly.
 #'
 #' @param df A data frame with the source data.
 #' @param project.cols A named list. Names are RAM columns, values source columns.
@@ -11,10 +14,11 @@
 #' @param property.fill A named list with fixed values for the rows.
 #' @param item.cols A named list. Names are RAM columns, values source columns.
 #' @param item.fill A named list with fixed values for the rows.
-#' @param compile Whether to return compiled rows or store them in the attributes of the input data frame.
-#' @return A data frame. When compile is TRUE, ready to be imported into Epigraf.
-#'         Otherwise with rows in the attributes of the data frame.
-#'         Call `ram_compile()` to get the import data.
+#' @param compile Whether to return the compiled RAM rows or a RAM enhanced data frame.
+#' @return When compile is TRUE: a RAM data frame, ready for patching into the Epigraf database.
+#'         When compile is FALSE: a RAM-enhanced data frame.
+#'         In RAM-enhanced data frames, the RAM rows are stored in the epi attribute.
+#'         Call `ram_compile()` to get a RAM data frame from a RAM-enhanced data frame.
 #' @examples
 #' library(tibble)
 #' library(eprgraf)
@@ -72,22 +76,20 @@ df_to_ram <- function(
 
 #' Create RAM rows for project data
 #'
-#' @keywords internal
-#'
 #' @param df The source data frame
-#' @param mapping The mapping of source columns to RAM columns
-#' @param fill Fixed values
+#' @param cols The mapping of source columns to RAM columns
+#' @param fill Fixed values for the RAM
 #' @return RAM rows
-craft_projects <- function(df, mapping, fill) {
+craft_projects <- function(df, cols = c(), fill = c()) {
 
-  mapping <- merge_vectors(mapping, c("fragment" = "project.fragment", "type" = "project.type"))
+  cols <- merge_vectors(cols, c("type" = "project.type", "fragment" = "project.fragment"))
 
   rows <- df
-  rows <- default_values(rows, mapping[["fragment"]], "default")
-  rows <- default_values(rows, mapping[["type"]], "default")
+  rows <- default_values(rows, cols[["fragment"]], "default")
+  rows <- default_values(rows, cols[["type"]], "default")
 
-  rows <- as.data.frame(rows[, mapping, drop = FALSE])
-  names(rows) <- names(mapping)
+  rows <- as.data.frame(rows[, cols, drop = FALSE])
+  names(rows) <- names(cols)
 
   for (name in names(fill)) {
     rows[[name]] <- fill[[name]]
@@ -110,17 +112,14 @@ craft_projects <- function(df, mapping, fill) {
 
 #' Create RAM rows for article data
 #'
-#' @keywords internal
-#'
 #' @param df The source data frame
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values
-#' @return RAM rows
-craft_articles <- function(df, cols, fill) {
-
+#' @return A RAM-enhanced data frame
+craft_articles <- function(df, cols = c(), fill = c()) {
 
   if (!(".project" %in% colnames(df))) {
-    stop("Please, map a project first")
+    stop("Please, craft a project first")
   }
 
   cols <- merge_vectors(cols, c("fragment" = "article.fragment", "type" = "article.type", "projects_id" = ".project"))
@@ -153,20 +152,19 @@ craft_articles <- function(df, cols, fill) {
 
 #' Create RAM rows for section data
 #'
-#' @keywords internal
-#'
 #' @param df The source data frame
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values
-#' @return RAM rows
-craft_sections <- function(df, cols, fill) {
+#' @return A RAM-enhanced data frame
+#' @export
+craft_sections <- function(df, cols = c(), fill = c()) {
 
   if (!(".project" %in% colnames(df))) {
-    stop("Please, map a project first")
+    stop("Please, craft a project first")
   }
 
   if (!(".article" %in% colnames(df))) {
-    stop("Please, map an article first")
+    stop("Please, craft an article first")
   }
 
   cols <- merge_vectors(cols, c("fragment" = "section.fragment", "type" = "section.type", "articles_id" = ".article", "projects_id" = ".project"))
@@ -200,13 +198,12 @@ craft_sections <- function(df, cols, fill) {
 
 #' Create RAM rows for item data
 #'
-#' @keywords internal
-#'
 #' @param df The source data frame
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values
-#' @return RAM rows
-craft_items <- function(df, cols, fill) {
+#' @return A RAM-enhanced data frame
+#' @export
+craft_items <- function(df, cols = c(), fill = c()) {
 
   if (!(".project" %in% colnames(df))) {
     stop("Please, map a project first")
@@ -254,13 +251,12 @@ craft_items <- function(df, cols, fill) {
 
 #' Create RAM rows for property data
 #'
-#' @keywords internal
-#'
 #' @param df The source data frame
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values
-#' @return RAM rows
-craft_properties <- function(df, cols, fill) {
+#' @return A RAM-enhanced data frame
+#' @export
+craft_properties <- function(df, cols = c(), fill = c()) {
 
   cols <- merge_vectors(cols, c("fragment" = "property.id", "type" = "property.type"))
   rows <- df

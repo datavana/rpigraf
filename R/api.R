@@ -340,7 +340,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
 #'             Patching properties with prefixed ids requires a `type` column
 #'             that contains the property type.
 #'             Column names with table names as prefixes will be extracted, if wide is set to TRUE (default).
-#' @param database The database name
+#' @param db The database name
 #' @param table Optional: Check that the data only contains rows for a specific table
 #' @param type Optional: Check that the data only contains rows with a specific type
 #' @param wide Convert wide format to long format.
@@ -348,7 +348,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
 #'             and "projects" followed by a dot (e.g. "properties.id",
 #'            "properties.lemma") will be extracted and patched as additional records.
 #' @export
-api_patch <- function(data, database, table=NA, type=NA, wide=T) {
+api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   if (wide) {
     data <- epi_wide_to_long(data)
@@ -358,13 +358,13 @@ api_patch <- function(data, database, table=NA, type=NA, wide=T) {
 
   # IRI path
   data <- data |>
-    dplyr::select(id, everything()) |>
+    dplyr::select(id, tidyselect::everything()) |>
 
     # Remove complete empty columns
     dplyr::select(where(~!all(is.na(.x)))) |>
 
     # Remove rows where all values are NA
-    dplyr::filter(if_any(everything(), ~ !is.na(.)))
+    dplyr::filter(if_any(tidyselect::everything(), ~ !is.na(.)))
 
 
   if ((nrow(data) == 0) || (ncol(data) == 0)) {
@@ -377,7 +377,7 @@ api_patch <- function(data, database, table=NA, type=NA, wide=T) {
 
   print(paste0("Uploading ",nrow(data)," rows."))
 
-  api_job_create("articles/import", NA, database,list(data=data))
+  api_job_create("articles/import", NA, db,list(data=data))
 }
 
 #' Add the epi_tbl class and make it remember its source

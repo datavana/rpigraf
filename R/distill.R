@@ -1,10 +1,11 @@
-#' Get articles including a selected item value
+#' Get articles (including selected item values)
 #'
 #' @param df A RAM data frame
 #' @param item.type Item types to join
 #' @param item.cols Cols to join from the items
-#' @return A tibble with cases
+#' @return A tibble with articles
 #' @importFrom rlang .data
+#' @export
 distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), property.cols = c()) {
   cases <- df[df$table == "articles", unique(c("id","type","norm_iri", cols))]
 
@@ -40,10 +41,11 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
   cases
 }
 
-#' Get the property tree by type
+#' Get the property tree (including annotations)
 #'
 #' @param df A RAM data frame
-#' @return A tibble containing the code tree
+#' @return A tibble containing the properties tree
+#' @export
 distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   props <- epi_extract_long(df, "properties", type, FALSE)
   if (!("parent_id" %in% colnames(props))) {
@@ -61,16 +63,75 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
 
     # links
     links <- distill_links(df, type, c("segment"))
-    props <- dplyr::left_join(props, links, by=c("id"="to_id"))
+    links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
+    links <- drop_empty_columns(links)
 
-    # TODO: items
-    #items <- distill_articles(df, property.cols = c("id"))
+    # Items
+    items <- distill_items(df, NULL, cols = c("articles_id", "property"))
+    items$root_id <- items$articles_id
+    items <- items[, c("property","root_id")]
+    items <- stats::na.omit(items)
+    items <- dplyr::inner_join(props, items, by=c("id"="property"))
+    items <- drop_empty_columns(items)
+
+    if (nrow(items) > 0) {
+      props <- dplyr::anti_join(props, items, by="id")
+    }
+
+
+    if (nrow(links) > 0) {
+      props <- dplyr::anti_join(props, links, by="id")
+    }
+
+    props <- bind_rows(props, links, items)
   }
 
   props
 }
 
+#' Get articles (including selected item values)
+#'
+#' TODO: Implement article.cols parameter.
+#'
+#' @keywords internal
+#'
+#' @param df A RAM data frame
+#' @param type Item types to filter
+#' @param cols Cols returned from the items
+#' @param property.cols Property columns joined to the items
+#' @param article.cols Article columns joined to the items. Not implemented yet.
+#' @return A tibble with items
+#' @importFrom rlang .data
+#' @export
+distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), article.cols = c()) {
+  items <- epi_extract_long(df, "items", type, prefix = FALSE)
+
+  extract.cols <- cols
+  if (length(property.cols) > 0) {
+    extract.cols <- c(extract.cols, c(paste0("properties.",property.cols)))
+  }
+
+  if (!missing(property.cols)) {
+    props <- epi_extract_long(df, "properties")
+    if (nrow(props) > 0) {
+      items <- dplyr::left_join(items, props, by = c("property" = "properties.id"))
+    }
+  }
+
+  #cases <- dplyr::full_join(cases, items, by=c("id" = "items.articles_id"))
+  #items <- items[, c(cols),drop = FALSE]
+  items <- items[, c(extract.cols, "id", "type", "norm_iri"), drop = FALSE]
+
+  items <- items |>
+    dplyr::mutate(dplyr::across(tidyselect::any_of(extract.cols), ~ stringr::str_replace_all(.x,"&amp;","&"))) |>
+    dplyr::mutate(dplyr::across(tidyselect::any_of(extract.cols), ~ stringr::str_replace_all(.x,"&x2f;","&")))
+
+  items
+}
+
 #' Get annotations for the articles
+#'
+#' @keywords internal
 #'
 #' @param df A RAM data frame
 #' @param item.type The type of items with annotations
@@ -81,6 +142,7 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
 
   codes <- distill_properties(df, cols = c("parent_id","level","norm_iri"))
   cases <- distill_articles(df, cols = article.cols)
+
   cases <- dplyr::select(cases, -tidyselect::any_of(c("type","norm_iri")))
 
   if (!("parent_id" %in% colnames(codes))) {
@@ -122,11 +184,13 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
 
   codings <- left_join(codings, segments, by=c("from_id", "from_tagid"))
 
-  codings <- dplyr::select(codings, any_of(c(article.cols, cols, "to_id", "root_id","from_tagid")))
+  codings <- dplyr::select(codings, any_of(c(article.cols, "root_id", "from_tagid", cols, "to_id")))
   codings
 }
 
 #' Function to extract segments based on ID attribute
+#'
+#' @keywords internal
 #'
 #' @param xml Character value containing XML text
 #' @param tagid Character value containing the tag ID
@@ -139,7 +203,12 @@ extract_segment <- function(xml, tagid) {
   return(segment_text)
 }
 
-# Function to extract non-tagged text
+#' Function to extract non-tagged text
+#'
+#' @keywords internal
+#'
+#' @param xml The XML as character value
+#' @return A character value where all text contained in tags was stripped
 extract_untagged <- function(xml) {
   xml <- paste0("<root>",xml,"</root>")
   xml = str_replace_all(xml, "&", "&#038;")
