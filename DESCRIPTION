@@ -1,4 +1,4 @@
-Package: eprgraf
+Package: rpigraf
 Title: Fetch from and push data to Epigraf
 Version: 0.0.0.9000
 Authors@R: 
@@ -36,4 +36,4 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/datavana/eprgraf
+URL: https://github.com/datavana/rpigraf

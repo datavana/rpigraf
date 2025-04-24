@@ -2,7 +2,7 @@
 % Please edit documentation in R/distill.R
 \name{distill_properties}
 \alias{distill_properties}
-\title{Get the property tree by type}
+\title{Get the property tree (including annotations)}
 \usage{
 distill_properties(df, type = NULL, cols = c(), annos = FALSE)
 }
@@ -10,8 +10,8 @@ distill_properties(df, type = NULL, cols = c(), annos = FALSE)
 \item{df}{A RAM data frame}
 }
 \value{
-A tibble containing the code tree
+A tibble containing the properties tree
 }
 \description{
-Get the property tree by type
+Get the property tree (including annotations)
 }

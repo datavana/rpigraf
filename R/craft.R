@@ -21,7 +21,7 @@
 #'         Call `ram_compile()` to get a RAM data frame from a RAM-enhanced data frame.
 #' @examples
 #' library(tibble)
-#' library(eprgraf)
+#' library(rpigraf)
 #'
 #' df <- tribble(
 #'   ~case, ~title, ~text,

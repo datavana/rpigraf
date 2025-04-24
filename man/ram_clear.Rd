@@ -17,7 +17,7 @@ Remove all RAM rows from a tibble
 }
 \examples{
 library(tibble)
-library(eprgraf)
+library(rpigraf)
 
 # Example data
 df <- tribble(

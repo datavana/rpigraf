@@ -21,7 +21,7 @@ library(httr)
 library(tidyverse)
 library(dplyr)
 library(tibble)
-library(eprgraf)
+library(rpigraf)
 
 api_setup("http://localhost", "devel")
 

@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(eprgraf)
+library(rpigraf)
 
-test_check("eprgraf")
+test_check("rpigraf")

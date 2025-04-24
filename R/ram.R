@@ -37,7 +37,7 @@ ram_add <- function(df, rows, skip=FALSE) {
 #' @return The RAM rows data frame
 #' @examples
 #' library(tibble)
-#' library(eprgraf)
+#' library(rpigraf)
 #'
 #' # Example data
 #' df <- tribble(
@@ -96,7 +96,7 @@ ram_compile <- function(df) {
 #' @return Epigraf tibble without RAM rows
 #' @examples
 #' library(tibble)
-#' library(eprgraf)
+#' library(rpigraf)
 #'
 #' # Example data
 #' df <- tribble(

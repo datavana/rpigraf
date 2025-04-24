@@ -27,3 +27,4 @@ A tibble containing annotations
 \description{
 Get annotations for the articles
 }
+\keyword{internal}

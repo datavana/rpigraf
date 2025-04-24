@@ -4,14 +4,14 @@
 \alias{craft_projects}
 \title{Create RAM rows for project data}
 \usage{
-craft_projects(df, mapping, fill)
+craft_projects(df, cols = c(), fill = c())
 }
 \arguments{
 \item{df}{The source data frame}
 
-\item{mapping}{The mapping of source columns to RAM columns}
+\item{cols}{The mapping of source columns to RAM columns}
 
-\item{fill}{Fixed values}
+\item{fill}{Fixed values for the RAM}
 }
 \value{
 RAM rows
@@ -19,4 +19,3 @@ RAM rows
 \description{
 Create RAM rows for project data
 }
-\keyword{internal}

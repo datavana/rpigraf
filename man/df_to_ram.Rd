@@ -2,7 +2,7 @@
 % Please edit documentation in R/craft.R
 \name{df_to_ram}
 \alias{df_to_ram}
-\title{Map a data frame to the Relational Article Model}
+\title{Map a data frame to the Relational Article Model (RAM)}
 \usage{
 df_to_ram(
   df,
@@ -42,19 +42,21 @@ df_to_ram(
 
 \item{item.fill}{A named list with fixed values for the rows.}
 
-\item{compile}{Whether to return compiled rows or store them in the attributes of the input data frame.}
+\item{compile}{Whether to return the compiled RAM rows or a RAM enhanced data frame.}
 }
 \value{
-A data frame. When compile is TRUE, ready to be imported into Epigraf.
-Otherwise with rows in the attributes of the data frame.
-Call \code{ram_compile()} to get the import data.
+When compile is TRUE: a RAM data frame, ready for patching into the Epigraf database.
+When compile is FALSE: a RAM-enhanced data frame.
+In RAM-enhanced data frames, the RAM rows are stored in the epi attribute.
+Call \code{ram_compile()} to get a RAM data frame from a RAM-enhanced data frame.
 }
 \description{
-Map a data frame to the Relational Article Model
+Calls craft methods for projects, articles, sections, items and properties.
+Alternatively, you can use the craft methods directly.
 }
 \examples{
 library(tibble)
-library(eprgraf)
+library(rpigraf)
 
 df <- tribble(
   ~case, ~title, ~text,

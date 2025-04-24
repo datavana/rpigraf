@@ -4,7 +4,7 @@
 \alias{craft_sections}
 \title{Create RAM rows for section data}
 \usage{
-craft_sections(df, cols, fill)
+craft_sections(df, cols = c(), fill = c())
 }
 \arguments{
 \item{df}{The source data frame}
@@ -14,9 +14,8 @@ craft_sections(df, cols, fill)
 \item{fill}{Fixed values}
 }
 \value{
-RAM rows
+A RAM-enhanced data frame
 }
 \description{
 Create RAM rows for section data
 }
-\keyword{internal}

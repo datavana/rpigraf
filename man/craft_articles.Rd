@@ -4,7 +4,7 @@
 \alias{craft_articles}
 \title{Create RAM rows for article data}
 \usage{
-craft_articles(df, cols, fill)
+craft_articles(df, cols = c(), fill = c())
 }
 \arguments{
 \item{df}{The source data frame}
@@ -14,9 +14,8 @@ craft_articles(df, cols, fill)
 \item{fill}{Fixed values}
 }
 \value{
-RAM rows
+A RAM-enhanced data frame
 }
 \description{
 Create RAM rows for article data
 }
-\keyword{internal}

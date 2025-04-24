@@ -4,7 +4,7 @@
 \alias{craft_properties}
 \title{Create RAM rows for property data}
 \usage{
-craft_properties(df, cols, fill)
+craft_properties(df, cols = c(), fill = c())
 }
 \arguments{
 \item{df}{The source data frame}
@@ -14,9 +14,8 @@ craft_properties(df, cols, fill)
 \item{fill}{Fixed values}
 }
 \value{
-RAM rows
+A RAM-enhanced data frame
 }
 \description{
 Create RAM rows for property data
 }
-\keyword{internal}

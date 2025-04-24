@@ -2,7 +2,7 @@
 % Please edit documentation in R/distill.R
 \name{distill_articles}
 \alias{distill_articles}
-\title{Get articles including a selected item value}
+\title{Get articles (including selected item values)}
 \usage{
 distill_articles(
   df,
@@ -20,8 +20,8 @@ distill_articles(
 \item{item.cols}{Cols to join from the items}
 }
 \value{
-A tibble with cases
+A tibble with articles
 }
 \description{
-Get articles including a selected item value
+Get articles (including selected item values)
 }

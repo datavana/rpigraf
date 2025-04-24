@@ -17,3 +17,4 @@ A character value containing only the text of elements with the tag ID
 \description{
 Function to extract segments based on ID attribute
 }
+\keyword{internal}

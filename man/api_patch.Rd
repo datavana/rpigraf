@@ -4,7 +4,7 @@
 \alias{api_patch}
 \title{Patch data}
 \usage{
-api_patch(data, database, table = NA, type = NA, wide = T)
+api_patch(data, db, table = NA, type = NA, wide = T)
 }
 \arguments{
 \item{data}{A dataframe with the column \code{id}.
@@ -15,7 +15,7 @@ Patching properties with prefixed ids requires a \code{type} column
 that contains the property type.
 Column names with table names as prefixes will be extracted, if wide is set to TRUE (default).}
 
-\item{database}{The database name}
+\item{db}{The database name}
 
 \item{table}{Optional: Check that the data only contains rows for a specific table}
 

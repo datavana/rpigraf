@@ -19,7 +19,7 @@ RAM rows can be added with \code{ram_add()}.
 }
 \examples{
 library(tibble)
-library(eprgraf)
+library(rpigraf)
 
 # Example data
 df <- tribble(

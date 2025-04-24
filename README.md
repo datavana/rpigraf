@@ -1,13 +1,13 @@
-# Eprgraf Package 
+# Rpigraf Package 
 
-The Epigraf package makes data work with [Epigraf](https://digicademy.github.io/epigraf/) easier.
+The Rpigraf package makes data work with [Epigraf](https://digicademy.github.io/epigraf/) easier.
 It provides functions for data transfer using the Epigraf APIs: Preparing data imports, e.g. from social media datasets, and preparing data analyses.
 
 ## Installation 
 
 ```
 library(remotes)
-install_github("datavana/eprgraf")
+install_github("datavana/rpigraf")
 ```
 
 ## Access the Epigraf API
@@ -16,10 +16,10 @@ Please be aware: The API is under development and responds at a cosy pace. Pleas
 
 The endpoints for accessing article data are documented in the [Epigraf help](https://epigraf.inschriften.net/help/epiweb-api). 
 To get an access token for nonpublic data access follow the instructions in the help. 
-After loading the Eprgraf package, you configure the connection to the API:
+After loading the rpigraf package, you configure the connection to the API:
 
 ```
-library(eprgraf)
+library(rpigraf)
 api_setup("https://epigraf.inschriften.net/", "MYACCESSTOKEN")
 ```
 
