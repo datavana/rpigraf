@@ -47,35 +47,27 @@ You can combine fetching an article list, and the full entity data in the next s
 
 ```
 # Get all data for the first articles page (limit each page to 5 articles)
-articles <- fetch_table("articles", params=c(limit=5), db="epi_movies", maxpages=1) |> 
-  fetch_entity()
+articles <- api_fetch("articles", params=c(limit=5), db="epi_movies", maxpages=1)
 ```
 
 
 The data come in the Relation-Article-Model-format. 
 That means all pieces of an article are returned as rows.  
-Filter the rows to dive into a specific slice of the article data.
 
-For example, extract the property tree from the articles:
-
-```
-props <- epi |> 
-  filter(table == "properties") |> 
-  select_if(~ ! all(is.na(.))) |> 
-  distinct() |> 
-  arrange(type, lft) 
-```
-
-In case properties are organised in a tree
-(they have a parent_id), you can add the lemma path:
+Use the distill-function to get some cozy data.
+For example, extract all properties of type "categories" from the RAM data:
 
 ```
-props <- props |> 
-  select(lemma, level, lft, rght, id, parent_id) |> 
-  tree_add_path(id, parent_id, id)
-
+distill_properties(articles, "categories")
 ```
 
+Or extract the list of articles:
+
+```
+distill_articles(articles, c("signature", "name"))
+```
+
+See the import vignette for further examples, e.g. on how to get annotations.
 
 ## Writing data
 
@@ -96,4 +88,7 @@ If a property with the given IRI path already exists, it will not be created, bu
 
 The property types, "categories" in the example,  need to be configured in Epigraf. 
 Thereafter, you can see the new properties in Epigraf by clicking the categories menu button. 
+
+For more complex data, use the craft functions to map your data frames to the RAM.
+See the import vignette for further examnples.
 
