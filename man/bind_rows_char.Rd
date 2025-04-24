@@ -8,8 +8,9 @@ bind_rows_char(dataframes)
 }
 \arguments{
 \item{dataframes}{A list of dataframes}
-
-\item{A}{list of dataframes with common column types}
+}
+\value{
+A list of dataframes with common column types
 }
 \description{
 Convert columns that differ in type to character,

@@ -4,7 +4,17 @@
 \alias{default_values}
 \title{Set default values}
 \usage{
-default_values(ds, colname, default)
+default_values(df, colname, default)
+}
+\arguments{
+\item{df}{A data frame}
+
+\item{colname}{A column name as character value}
+
+\item{default}{If the column is not present in the data frame, add it with the default value}
+}
+\value{
+A data frame where the given column was added if necessary
 }
 \description{
 Set default values

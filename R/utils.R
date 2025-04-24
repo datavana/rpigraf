@@ -4,9 +4,10 @@
 #'
 #' @param y A list
 #' @return A cleaned list
+#' @importFrom stats na.omit
 #' @export
-na.omit.list <- function(y) {
-  return(y[!vapply(y, function(x) all(is.na(x)), logical(1))])
+na.omit.list <- function(object, ...) {
+  return(object[!vapply(object, function(x) all(is.na(x)), logical(1))])
 }
 
 #' Ask user to confirm script execution
@@ -52,9 +53,11 @@ unescape_html <- function(str){
 
 #' Remove empty columns
 #'
+#' @param df A data frame
+#' @return A data frame without columns that only contain NA values
 #' @export
 drop_empty_columns <- function(df) {
-  select_if(df, ~{any(!is.na(.))})
+  dplyr::select_if(df, ~{any(!is.na(.))})
 }
 
 
@@ -62,7 +65,6 @@ drop_empty_columns <- function(df) {
 #'
 #' @param data A character vector that may contain NAs
 #' @return A parsed vector
-#' @importFrom jsonlite stream_in
 #' @export
 parse_json <- function(data) {
   data[data == "[]"] = "{}"
@@ -181,7 +183,7 @@ pseudonyms <- function(n) {
 #' then bind rows.
 #'
 #' @param dataframes A list of dataframes
-#' @param A list of dataframes with common column types
+#' @return A list of dataframes with common column types
 bind_rows_char <- function(dataframes){
 
   cols_names <- unique(unlist(lapply(dataframes, colnames)))
@@ -212,6 +214,9 @@ bind_rows_char <- function(dataframes){
 
 #' Merge vectors
 #'
+#' @param values A named vector
+#' @param default A second named vector
+#' @return The first vector containing all additional named values from the second vector
 merge_vectors <- function(values, default) {
   default[names(values)] <- values
   default
@@ -219,9 +224,13 @@ merge_vectors <- function(values, default) {
 
 #' Set default values
 #'
-default_values <- function(ds, colname, default) {
-  if (!(colname %in% colnames(ds))) {
-    ds[[colname]] <- default
+#' @param df A data frame
+#' @param colname A column name as character value
+#' @param default If the column is not present in the data frame, add it with the default value
+#' @return A data frame where the given column was added if necessary
+default_values <- function(df, colname, default) {
+  if (!(colname %in% colnames(df))) {
+    df[[colname]] <- default
   }
-  ds
+  df
 }

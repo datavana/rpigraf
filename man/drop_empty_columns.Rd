@@ -6,6 +6,12 @@
 \usage{
 drop_empty_columns(df)
 }
+\arguments{
+\item{df}{A data frame}
+}
+\value{
+A data frame without columns that only contain NA values
+}
 \description{
 Remove empty columns
 }

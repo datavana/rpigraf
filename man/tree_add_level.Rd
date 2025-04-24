@@ -7,13 +7,13 @@
 tree_add_level(data, col_id, col_parent, col_sort = NULL)
 }
 \arguments{
+\item{data}{The dataframe containing hierarchical data}
+
 \item{col_id}{The ID column of the node}
 
 \item{col_parent}{The ID column of the parent node}
 
 \item{col_sort}{Column for sorting the nodes inside each parent. Leave empty to use the ID column.}
-
-\item{.data}{The dataframe containing hierarchical data}
 }
 \value{
 Data frame with the additional columns tree_thread, tree_order and tree_level

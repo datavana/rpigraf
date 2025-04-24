@@ -6,6 +6,14 @@
 \usage{
 merge_vectors(values, default)
 }
+\arguments{
+\item{values}{A named vector}
+
+\item{default}{A second named vector}
+}
+\value{
+The first vector containing all additional named values from the second vector
+}
 \description{
 Merge vectors
 }

@@ -357,11 +357,11 @@ api_patch <- function(data, database, table=NA, type=NA, wide=T) {
   stopifnot(epi_is_iripath(data$id, table, type) | epi_is_id(data$id, table))
 
   # IRI path
-  data <- data %>%
-    dplyr::select(id, everything()) %>%
+  data <- data |>
+    dplyr::select(id, everything()) |>
 
     # Remove complete empty columns
-    dplyr::select(where(~!all(is.na(.x)))) %>%
+    dplyr::select(where(~!all(is.na(.x)))) |>
 
     # Remove rows where all values are NA
     dplyr::filter(if_any(everything(), ~ !is.na(.)))
@@ -409,3 +409,5 @@ api_patch <- function(data, database, table=NA, type=NA, wide=T) {
   class(data) <- c("epi_tbl", setdiff(class(data), "epi_tbl"))
   data
 }
+
+

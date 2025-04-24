@@ -2,13 +2,16 @@
 % Please edit documentation in R/epi.R
 \name{epi_is_irifragment}
 \alias{epi_is_irifragment}
-\title{Check whether the provided vector contains a valid IRI fragment}
+\title{Check whether the provided vector contains only valid IRI fragments}
 \usage{
-epi_is_irifragment(irifragment)
+epi_is_irifragment(value)
 }
 \arguments{
-\item{iripath}{The vector that will be proofed}
+\item{value}{The vector that will be checked.}
+}
+\value{
+A vector of the same length as value, containg TRUE or FALSE.
 }
 \description{
-Check whether the provided vector contains a valid IRI fragment
+Check whether the provided vector contains only valid IRI fragments
 }

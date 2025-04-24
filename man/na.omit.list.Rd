@@ -4,7 +4,7 @@
 \alias{na.omit.list}
 \title{Remove NA entries from a list}
 \usage{
-\method{na.omit}{list}(y)
+\method{na.omit}{list}(object, ...)
 }
 \arguments{
 \item{y}{A list}

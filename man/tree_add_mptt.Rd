@@ -4,7 +4,7 @@
 \alias{tree_add_mptt}
 \title{Adds left and right values to the dataframe}
 \usage{
-tree_add_mptt(.data)
+tree_add_mptt(data)
 }
 \arguments{
 \item{data}{Dataframe with the columns tree_id, tree_parent, tree_thread, tree_level, tree_order}

@@ -35,17 +35,18 @@ epi_create_iri <- function(table, type, fragment, split=F) {
 #' Replaces all non alphanumeric characters by hyphens
 #' and converts the input to lowercase
 #'
-#' @param iri The dirty IRI fragment that will be cleaned
+#' @param fragment The dirty IRI fragment that will be cleaned
+#' @return A clean IRI fragment
 #' @export
 epi_clean_irifragment <- function(fragment) {
-  fragment %>%
-    stringr::str_to_lower() %>%
+  fragment |>
+    stringr::str_to_lower() |>
     stringr::str_replace_all(
-      c("ä"="ae","ö"="oe","ü"="ue","ß"="ss")
-    ) %>%
-    stringr::str_replace_all("[^a-z0-9_~-]","-") %>%
-    stringr::str_replace_all("-+","-") %>%
-    stringr::str_remove("^-") %>%
+      c("\u00E4"="ae","\u00F6"="oe","\u00FC"="ue","\u00DF"="ss")
+    ) |>
+    stringr::str_replace_all("[^a-z0-9_~-]","-") |>
+    stringr::str_replace_all("-+","-") |>
+    stringr::str_remove("^-") |>
     stringr::str_remove("-$")
 }
 
@@ -113,12 +114,13 @@ epi_is_prefixid <- function(ids, table=NA, prefix=NA) {
 }
 
 
-#' Check whether the provided vector contains a valid IRI fragment
+#' Check whether the provided vector contains only valid IRI fragments
 #'
-#' @param iripath The vector that will be proofed
+#' @param value The vector that will be checked.
+#' @return A vector of the same length as value, containg TRUE or FALSE.
 #' @export
-epi_is_irifragment <- function(irifragment) {
-  stringr::str_detect(irifragment,"^[a-z0-9_~-]+$")
+epi_is_irifragment <- function(value) {
+  stringr::str_detect(value,"^[a-z0-9_~-]+$")
 }
 
 #' Get the IRI fragment of an IRI path
@@ -137,7 +139,27 @@ epi_iri_parent <- function(id = NULL, prefix = "~") {
   parent
 }
 
-
+#' Get RAM rows by table name
+#'
+#' @param df A RAM data frame
+#' @param table The table name
+#' @param type Filter by type
+#' @param prefix Whether to prefix the columns with the table name
+#' @return A data frame with the filtered rows and columns prefixed with the table name
+#' @importFrom rlang .data
+epi_extract_long <- function(df, table, type = NULL, prefix = TRUE) {
+  df <- df[df$table == table,]
+  if (!is.null(type)) {
+    df <- df[df$type == type,]
+  }
+  df <- drop_empty_columns(df)
+  df <- dplyr::distinct(df)
+  #df <- dplyr::select(df, -tidyselect::any_of(c("table","type","norm_iri","row")))
+  if (prefix) {
+    colnames(df) <- paste0(table,".", colnames(df))
+  }
+  df
+}
 
 #' Select nested data from prefixed columns
 #'
@@ -159,17 +181,17 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
   }
 
 
-  data <- data %>%
-    select(starts_with(paste0(cols_prefix, ".")), matches(regex_keep)) %>%
-    rename_all(~str_replace(.,paste0(cols_prefix, "\\."),"")) %>%
-    rename_all(~str_replace(.,"\\.","_")) %>%
-    distinct() %>%
-    dplyr::select(where(~!all(is.na(.x)))) %>%
-    dplyr::filter(if_any(everything(), ~ !is.na(.)))
+  data <- data |>
+    dplyr::select(tidyselect::starts_with(paste0(cols_prefix, ".")), tidyselect::matches(regex_keep)) |>
+    dplyr::rename_all(~stringr::str_replace(.,paste0(cols_prefix, "\\."),"")) |>
+    dplyr::rename_all(~stringr::str_replace(.,"\\.","_")) |>
+    dplyr::distinct() |>
+    dplyr::select(tidyselect::where(~!all(is.na(.x)))) |>
+    dplyr::filter(dplyr::if_any(everything(), ~ !is.na(.)))
 
   # Remove data that only contains ID columns
   if (length(setdiff(colnames(data), c("id", paste0(cols_keep,"_id")))) == 0) {
-    data <- tibble()
+    data <- tibble::tibble()
   }
 
   data
@@ -189,32 +211,35 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
 #' @export
 epi_wide_to_long <- function(data) {
 
-  rows = tibble()
+  rows = tibble::tibble()
 
   # Extract nested rows
-  rows <- bind_rows(rows,epi_extract_wide(data, "properties"))
-  rows <- bind_rows(rows,epi_extract_wide(data, "projects"))
-  rows <- bind_rows(rows,epi_extract_wide(data, "articles", c("projects")))
-  rows <- bind_rows(rows,epi_extract_wide(data, "sections", c("articles")))
-  rows <- bind_rows(rows,epi_extract_wide(data, "items", c("articles","sections")))
+  rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "properties"))
+  rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "projects"))
+  rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "articles", c("projects")))
+  rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "sections", c("articles")))
+  rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "items", c("articles","sections")))
 
   # All other rows
-  extracted <- data %>%
-    select(matches("^[_a-z]+$"),matches("^projects\\.id|articles\\.id|sections\\.id|items\\.id|properties\\.id$")) %>%
-    rename_all(~str_replace(.,"\\.","_"))
+  extracted <- data |>
+    dplyr::select(
+      tidyselect::matches("^[_a-z]+$"),
+      tidyselect::matches("^projects\\.id|articles\\.id|sections\\.id|items\\.id|properties\\.id$")
+    ) |>
+    dplyr::rename_all(~ stringr::str_replace(.,"\\.","_"))
 
   if ((nrow(extracted) > 0) && (ncol(extracted) > 0)) {
-    rows <- bind_rows(rows, extracted)
+    rows <- dplyr::bind_rows(rows, extracted)
   }
 
   stopifnot(epi_is_iripath(rows$id) | epi_is_id(rows$id))
 
   # Create table columns
   if ((nrow(rows) > 0) && (ncol(rows) > 0)) {
-    rows <- rows %>%
-      dplyr::filter(if_any(everything(), ~ !is.na(.))) %>%
-      mutate(table=str_extract(id,"^[^/]+")) %>%
-      select(table, id, everything())
+    rows <- rows |>
+      dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.))) |>
+      dplyr::mutate(table=stringr::str_extract(id,"^[^/]+")) |>
+      dplyr::select(table, id, tidyselect::everything())
   }
 
   rows

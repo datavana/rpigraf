@@ -17,7 +17,10 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
+library(dplyr)
+library(tibble)
 library(eprgraf)
+
 api_setup("http://localhost", "devel")
 
 ```
@@ -32,66 +35,61 @@ Epigraf expects data in a format called Relational Article Model (RAM).
 ```{r}
 
 ds <- tribble(
-  ~case, ~title, ~genre, ~text,
-  "011", "Westworld", "Western", "In a futuristic amusement park, androids populate themed worlds like the Wild West.",
+  ~case, ~title,       ~genre,     ~text,
+  "011", "Westworld",   "Western", "In a futuristic amusement park, androids populate themed worlds like the Wild West.",
   "012", "Yellowstone", "Western", "Ranch owner John Dutton battles to protect his family's massive Montana cattle ranch.",
-  "013", "Once Upon a Time in the West", "Western",  "A mysterious harmonica-playing stranger teams up with a bandit."
+  "013", "Once Upon",   "Western", "A mysterious harmonica-playing stranger teams up with a bandit."
 )
 
-epi <- ds |> 
-  df_to_ram(
-  
-    # The project is fixed (Movies)
-    project.cols = c(),
-    project.fill = c("id" = "movies", "name" = "Movies", "signature"="movies", "type" = "default"),
-    
-    # The article data is taken from the columns (case, title)
-    article.cols = c("id" = "case", "signature" = "case", "name" = "title"),
-    article.fill = c("type" = "default"),
-    
-    # The section is fixed
-    section.cols = c(),
-    section.fill = c("type" = "text", "name" = "Abstract"),
-        
-    # The item content is taken from the columns (text)
-    item.cols    = c("content" = "text"),
-    item.fill    = c("type" = "text"),
+# The project is named "Movies". The type defaults to "default".
+ds <- df_to_ram(ds, project.fill = c("fragment" = "movies", "name" = "Movies", "signature"="movies"))
 
-    compile = T
-  )
+# Article data is taken from the columns: case, title. The type defaults to "default".
+ds <- df_to_ram(ds, article.cols = c("fragment" = "case", "signature" = "case", "name" = "title"))
+    
+# The text section is named "Abstract"
+ds <- df_to_ram(ds, section.fill = c("type" = "text", "name" = "Abstract"))
+
+# The text item data is taken from the columns: text. The type is fixed to "text".
+ds <- df_to_ram(ds, item.fill = c("type" = "text"), item.cols = c("content" = "text"))
+
+# The categories section is named "Genres". The type is fixed to "categories".
+ds <- df_to_ram(ds, section.fill = c("type" = "categories", "name" = "Genres"))
+        
+# The categories property content is taken from the columns: genre.
+ds <- df_to_ram(ds, property.cols = c("fragment"="genre", "lemma" = "genre"), property.fill = c("type" = "categories"))
+
+# The categories item content is taken from the columns: .property was created by the property mapping beforehand.
+ds <- df_to_ram(ds, item.cols = c("properties_id" = ".property"), item.fill = c("type" = "categories"))
+
+# Compile the stacked ram rows
+epi <- ram_compile(ds)
 
 ```
 
-### Path data into the database
+### Patch data into the database
 
-```{r}
-api_patch(epi, "epi_movies")
+```{r eval=FALSE}
+api_patch(epi, db = "epi_movies")
 ```
 
 
 ## Download data
 
 ### Fetch data
-```{r}
-epi <- fetch_table("articles", c("id", "name"), db = "epi_movies") |> 
-  fetch_entity()
+```{r eval=FALSE}
+
+epi <- api_fetch("articles", db = "epi_movies")
 
 ```
 
 ### Work with RAM data
-```{r}
-# Extract all distinct properties
-props <- epi |> 
-  filter(table == "properties") |> 
-  select_if(~ ! all(is.na(.))) |> 
-  distinct() |> 
-  arrange(type, lft) 
+```{r eval=FALSE}
 
-# In case properties are organised in a tree
-# (they have a parent_id), you can add the lemma path:
+distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
 
-props <- props |> 
-  select(lemma, level, lft, rght, id, parent_id) |> 
-  tree_add_path(id, parent_id, id)
+distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
+
+distill_properties(epi,"annotations", annos = TRUE)
 
 ```

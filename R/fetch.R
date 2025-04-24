@@ -1,3 +1,16 @@
+#' Fetch entity data such as articles, projects or properties
+#'
+#' @param table The table name (e.g. "articles")
+#' @param params A named list of query params
+#' @param db The database name
+#' @param maxpages Maximum number of pages to request.
+#'                 Set to 1 for non-paginated tables.
+#' @export
+api_fetch <- function(table, params=c(), db, maxpages=1) {
+  fetch_table(table, "id", params, db, maxpages) |>
+    fetch_entity()
+}
+
 #' Fetch tables such as articles, projects or properties
 #'
 #' @param table The table name (e.g. "articles")
@@ -26,9 +39,9 @@ fetch_table <- function(table, columns=c(), params=c(), db, maxpages=1) {
 #' @param params A named list of query params
 #' @param db The database name. Leave empty when providing a dataframe produced by fetch_table().
 #'           In this case, the database name will be extracted from the dataframe.
-#' @param silent Whether to output status messages
+#' @param silent Whether to output a progress bar
 #' @export
-fetch_entity <- function(ids, params=c(), db=NULL, silent=FALSE) {
+fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
   # Get the database name from a dataframe
   if (is.null(db) && ("epi_tbl" %in% class(ids))) {
     db <- attr(ids, "source")["db"]
@@ -42,26 +55,32 @@ fetch_entity <- function(ids, params=c(), db=NULL, silent=FALSE) {
 
   # Iterate all IDs
   if (length(ids) > 1) {
-    cli::cli_progress_bar("Fetching data", total = length(ids))
-    data <- tibble()
+    if (!silent) {
+      cli::cli_progress_bar("Fetching data", total = length(ids))
+    }
+    data <- tibble::tibble()
 
     for (id in ids) {
       data <- bind_rows_char(
         list(
           data,
-          fetch_entity(id, params, db, silent=TRUE)
+          fetch_entity(id, params, db, silent = TRUE)
         )
       )
 
-      cli::cli_progress_update(status=id)
+      if (!silent) {
+        cli::cli_progress_update(status=id)
+      }
     }
 
-    cli::cli_progress_done()
+    if (!silent) {
+      cli::cli_progress_done()
+    }
     return (data)
   }
 
   if (length(ids) == 0) {
-    data <- .to_epitable(tibble(), c("params" = params, "db"=db))
+    data <- .to_epitable(tibble::tibble(), c("params" = params, "db"=db))
     return (data)
   }
 

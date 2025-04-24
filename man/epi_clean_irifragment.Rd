@@ -7,7 +7,10 @@
 epi_clean_irifragment(fragment)
 }
 \arguments{
-\item{iri}{The dirty IRI fragment that will be cleaned}
+\item{fragment}{The dirty IRI fragment that will be cleaned}
+}
+\value{
+A clean IRI fragment
 }
 \description{
 Replaces all non alphanumeric characters by hyphens

@@ -4,14 +4,14 @@
 \alias{ram_add}
 \title{Add a row to the rows in the epi attribute}
 \usage{
-ram_add(ds, rows, skip = FALSE)
+ram_add(df, rows, skip = FALSE)
 }
 \arguments{
-\item{ds}{A tibble}
+\item{df}{A tibble}
+
+\item{rows}{Crafted rows}
 
 \item{skip}{Whether to update the record or only use it as reference}
-
-\item{row}{A crafted row}
 }
 \value{
 Epigraf tibble

@@ -11,9 +11,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
     cli,
-    lifecycle
-Depends: 
+    lifecycle,
     rlang,
+    stats,
+    forcats,
+    purrr,
+    tidyselect,
+    xml2,
+    tibble,
     dplyr,
     tidyr,
     readr,
@@ -21,7 +26,11 @@ Depends:
     progressr,
     jsonlite,
     httr
+Depends:
+  R (>= 4.2)
 Suggests: 
+    tidyverse,
+    remotes,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

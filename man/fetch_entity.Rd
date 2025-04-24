@@ -16,7 +16,7 @@ So you can chain fetch_articles() and fetch_entity()}
 \item{db}{The database name. Leave empty when providing a dataframe produced by fetch_table().
 In this case, the database name will be extracted from the dataframe.}
 
-\item{silent}{Whether to output status messages}
+\item{silent}{Whether to output a progress bar}
 }
 \description{
 Fetch entities such as single articles, projects or properties
