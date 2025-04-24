@@ -80,6 +80,7 @@ df_to_ram <- function(
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values for the RAM
 #' @return RAM rows
+#' @export
 craft_projects <- function(df, cols = c(), fill = c()) {
 
   cols <- merge_vectors(cols, c("type" = "project.type", "fragment" = "project.fragment"))
@@ -116,6 +117,7 @@ craft_projects <- function(df, cols = c(), fill = c()) {
 #' @param cols The mapping of source columns to RAM columns
 #' @param fill Fixed values
 #' @return A RAM-enhanced data frame
+#' @export
 craft_articles <- function(df, cols = c(), fill = c()) {
 
   if (!(".project" %in% colnames(df))) {

@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, echo=FALSE}
+```{r include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>", 
@@ -17,10 +17,8 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
-library(httr)
 library(tidyverse)
-library(dplyr)
-library(tibble)
+library(httr)
 library(rpigraf)
 
 api_setup("http://localhost", "devel")
@@ -58,7 +56,7 @@ The IRI path is stored in the database tables and consists of three elements:
 
 ## Upload data
 
-### Map data to the RAM
+We use the following simple table as an example:
 
 ```{r}
 
@@ -68,44 +66,71 @@ ds <- tribble(
   "012", "Yellowstone", "Western", "Ranch owner John Dutton battles to protect his family's massive Montana cattle ranch.",
   "013", "Once Upon",   "Western", "A mysterious harmonica-playing stranger teams up with a bandit."
 )
-
-
-# Project: As we don't have data about the project in the source data frame, we fill in some values. 
-# The project is named "Movies". 
-# The type defaults to "default" (optional, if you omit it, "default" is used anyways)
-ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "name" = "Movies", "signature"="movies"))
-
-# Article data is taken from the columns: case, title. The type defaults to "default".
-ds <- craft_articles(ds, cols=c("type" ="default", "fragment" = "case", "signature" = "case", "name" = "title"))
-
-# The text section is named "Abstract". 
-# We omit the fragment, it is automatically added and derived from the article fragment.
-# You need a fragment, if you have multiple sections of the same type.
-ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
-
-# The text item data is taken from the columns: text. 
-# The type is fixed to "text". 
-# We omit the fragment, it is automatically added and derived from the section fragment.
-# You need a fragment, if you have multiple items of the same type.
-ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
-
-# The categories section is named "Genres". 
-# The type is fixed to "categories".
-ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
-        
-# The categories property content is taken from the columns: genre.
-ds <- craft_properties(ds, cols = c("fragment"="genre", "lemma" = "genre"), fill = c("type" = "categories"))
-
-# The categories item content is taken from the columns: .property was created by the property mapping beforehand.
-ds <- craft_items(ds, cols = c("properties_id" = ".property"), fill = c("type" = "categories"))
-
-# Compile the stacked ram rows
-epi <- ram_compile(ds)
-
 ```
+
+### Map data to the RAM
+
+The craft methods guide your through the mapping process.
+
+Project: As we don't have data about the project in the source data frame, we fill in some values.
+The project is named "Movies".
+The type defaults to "default" (optional, if you omit it, "default" is used anyways)
+
+```{r}
+ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "name" = "Movies", "signature"="movies"))
+```
+
+
+Article data is taken from the columns: case, title. 
+The type defaults to "default".
+```{r}
+ds <- craft_articles(ds, cols=c("type" ="default", "fragment" = "case", "signature" = "case", "name" = "title"))
+```
+
+
+The text section is named "Abstract".
+We omit the fragment, it is automatically added and derived from the article fragment.
+You need a fragment, if you have multiple sections of the same type.
+```{r}
+ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
+```
+
+The text item data is taken from the columns: text.
+The type is fixed to "text".
+We omit the fragment, it is automatically added and derived from the section fragment.
+You need a fragment, if you have multiple items of the same type.
+
+```{r}
+ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
+```
+
+The categories section is named "Genres".
+The type is fixed to "categories".
+
+```{r}
+ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
+```
+
+The categories property content is taken from the genre column.
+By crafting a property, the column .property is added to the data frame.
+The categories item content is taken from this column.
+
+```{r}
+ds <- craft_properties(ds, cols = c("fragment"="genre", "lemma" = "genre"), fill = c("type" = "categories"))
+ds <- craft_items(ds, cols = c("properties_id" = ".property"), fill = c("type" = "categories"))
+```
+
+
 
 ### Patch data into the database
 
+Finally, compile the stacked ram rows to get the RAM data frame.
+```{r}
+epi <- ram_compile(ds)
+```
+
+
+The RAM data frame is ready to be patched (=uploaded) into Epigraf.
 ```{r eval=FALSE}
 api_patch(epi, db = "epi_movies")
 ```
@@ -114,24 +139,29 @@ api_patch(epi, db = "epi_movies")
 ## Download data
 
 ### Fetch data
-```{r eval=FALSE}
 
+```{r eval=FALSE}
 epi <- api_fetch("articles", db = "epi_movies")
 ```
 
 ### Map RAM data to articles and their annotations
-```{r eval=FALSE}
 
-# Get articles with some item data
+Get articles with some item data
+```{r eval=FALSE}
 distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
+```
 
-# Get the properties used in the articles
+
+Get the properties used in the articles.
+```{r eval=FALSE}
 distill_properties(epi, "categories")
+```
 
-# Get the annotations for a property type
+
+Get the annotations, if any, for a property type.
+```{r eval=FALSE}
 distill_properties(epi, "categories", annos = TRUE)
 distill_properties(epi, "annotations", annos = TRUE)
-
 ```
