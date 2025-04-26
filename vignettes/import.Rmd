@@ -84,7 +84,7 @@ ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "n
 Article data is taken from the columns: case, title. 
 The type defaults to "default".
 ```{r}
-ds <- craft_articles(ds, cols=c("type" ="default", "fragment" = "case", "signature" = "case", "name" = "title"))
+ds <- craft_articles(ds, fill = c("type" = "default"), cols=c("fragment" = "case", "signature" = "case", "name" = "title"))
 ```
 
 
@@ -116,8 +116,8 @@ By crafting a property, the column .property is added to the data frame.
 The categories item content is taken from this column.
 
 ```{r}
-ds <- craft_properties(ds, cols = c("fragment"="genre", "lemma" = "genre"), fill = c("type" = "categories"))
-ds <- craft_items(ds, cols = c("properties_id" = ".property"), fill = c("type" = "categories"))
+ds <- craft_properties(ds, fill = c("type" = "categories"), cols = c("fragment"="genre", "lemma" = "genre"))
+ds <- craft_items(ds, fill = c("type" = "categories"), cols = c("properties_id" = ".property"))
 ```
 
 
