@@ -8,13 +8,14 @@
 #' @param apiserver URL of the Epigraf server (including https-protocol)
 #' @param apitoken Access token. If NULL, you will be asked to enter the token.
 #' @param verbose Show debug messages and the built URLs
+#' @importFrom rlang .data
 #' @export
 api_setup <- function(apiserver, apitoken=NULL, verbose=F) {
   if (missing(apitoken)) {
     apitoken <- readline(prompt="Please, enter your access token:")
   }
   settings <- as.list(environment())
-  settings <- setNames(settings, paste0("epi_",names(settings)))
+  settings <- stats::setNames(settings, paste0("epi_",names(settings)))
   do.call(Sys.setenv, settings)
 }
 
@@ -101,13 +102,13 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   url = api_buildurl(endpoint, params, database)
 
   if (verbose)  {
-    resp <- POST(url, body=payload, encode="json", set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+    resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
   } else {
-    resp <- POST(url, body=payload, encode="json")
+    resp <- httr::POST(url, body=payload, encode="json")
   }
 
 
-  body <- content(resp)
+  body <- httr::content(resp)
   job_id <- purrr::pluck(body,"job_id",.default = NA)
 
   error <- F
@@ -162,12 +163,12 @@ api_job_execute <- function(job_id) {
   while (polling) {
 
     if (verbose) {
-      resp <- POST(url, set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+      resp <- httr::POST(url, httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
     } else {
-      resp <- POST(url)
+      resp <- httr::POST(url)
     }
 
-    body <- content(resp)
+    body <- httr::content(resp)
 
     # Request error
     if (resp$status_code != 200)
@@ -278,7 +279,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
 
         if (resp$status_code == 200) {
           body <- httr::content(resp,as="text")
-          rows <- suppressWarnings(readr::read_delim(I(body), delim=";", col_types = cols(.default = col_character())))
+          rows <- suppressWarnings(readr::read_delim(I(body), delim=";", col_types = readr::cols(.default = readr::col_character())))
         }
 
         else if (resp$status_code == 404) {
@@ -288,7 +289,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
 
         else {
           rows <- data.frame()
-          message <- paste0("Error ",resp$status_code,": ", content(resp))
+          message <- paste0("Error ",resp$status_code,": ", httr::content(resp))
         }
 
         rows
@@ -317,7 +318,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
   }
 
   if (nrow(data) > 0) {
-    data <- suppressMessages(type_convert(data))
+    data <- suppressMessages(readr::type_convert(data))
   }
 
   .to_epitable(data, c("endpoint"=endpoint, "params" = params, "db"=db))
@@ -358,13 +359,13 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   # IRI path
   data <- data |>
-    dplyr::select(id, tidyselect::everything()) |>
+    dplyr::select(data$id, tidyselect::everything()) |>
 
     # Remove complete empty columns
-    dplyr::select(where(~!all(is.na(.x)))) |>
+    dplyr::select(tidyselect::where(~!all(is.na(.x)))) |>
 
     # Remove rows where all values are NA
-    dplyr::filter(if_any(tidyselect::everything(), ~ !is.na(.)))
+    dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.)))
 
 
   if ((nrow(data) == 0) || (ncol(data) == 0)) {

@@ -10,33 +10,33 @@
 #' @export
 tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
   # Quoting
-  col_id <- enquo(col_id)
-  col_parent <- enquo(col_parent)
-  col_sort <- enquo(col_sort)
+  col_id <- rlang::enquo(col_id)
+  col_parent <- rlang::enquo(col_parent)
+  col_sort <- rlang::enquo(col_sort)
 
-  if (quo_is_null(col_sort)) {
+  if (rlang::quo_is_null(col_sort)) {
     col_sort <- col_id
   }
 
   # Prepare columns
-  data <- mutate(data,.tree_id=!!col_id)
-  data <- mutate(data,.tree_parent=!!col_parent)
+  data <- dplyr::mutate(data,.tree_id=!!col_id)
+  data <- dplyr::mutate(data,.tree_parent=!!col_parent)
 
   # Prepare roots
   roots <- data |>
-    anti_join(data,by=c(".tree_parent"=".tree_id")) |>
-    mutate(tree_thread=.tree_id,tree_level=0,tree_order=0)
+    dplyr::anti_join(data,by=c(".tree_parent"=".tree_id")) |>
+    dplyr::mutate(tree_thread=.tree_id,tree_level=0,tree_order=0)
 
   # First level
   .level <- 1
   children <- data |>
-    inner_join(select(roots,.tree_id,tree_thread),by=c(".tree_parent"=".tree_id")) |>
-    mutate(tree_level=.level) |>
+    dplyr::inner_join(dplyr::select(roots,.tree_id,tree_thread),by=c(".tree_parent"=".tree_id")) |>
+    dplyr::mutate(tree_level=.level) |>
 
-    group_by(.tree_parent) |>
-    arrange(!!col_sort) |>
-    mutate(tree_order=row_number()) |>
-    ungroup()
+    dplyr::group_by(.tree_parent) |>
+    dplyr::arrange(!!col_sort) |>
+    dplyr::mutate(tree_order=dplyr::row_number()) |>
+    dplyr::ungroup()
 
   cat("Level ",.level,". ",sep="")
   cat(nrow(children)," nodes addes.\n\n",sep="")
@@ -47,15 +47,15 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
     cat("Level ",.level,". ",sep="")
 
     children.next <- data |>
-      anti_join(children,by=c(".tree_id")) |>
-      inner_join(select(children,tree_thread,.tree_id,.parent_order=tree_order),by=c(".tree_parent"=".tree_id")) |>
-      mutate(tree_level=.level) |>
+      dplyr::anti_join(children,by=c(".tree_id")) |>
+      dplyr::inner_join(tidyselect::all_of("children","tree_thread",".tree_id",".parent_order"="tree_order"),by=c(".tree_parent"=".tree_id")) |>
+      dplyr::mutate(tree_level=.level) |>
 
-      group_by(.tree_parent) |>
-      arrange(!!col_sort) |>
-      mutate(tree_order= row_number()) |>
-      ungroup() |>
-      select(-.parent_order)
+      dplyr::group_by(.tree_parent) |>
+      dplyr::arrange(!!col_sort) |>
+      dplyr::mutate(tree_order= dplyr::row_number()) |>
+      dplyr::ungroup() |>
+      dplyr::select(-.parent_order)
 
     children <- dplyr::bind_rows(children,children.next)
 
@@ -65,9 +65,9 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
       break
   }
 
-  bind_rows(roots,children) |>
-    arrange(tree_thread,tree_order) |>
-    select(-.tree_id,-.tree_parent)
+  dplyr::bind_rows(roots,children) |>
+    dplyr::arrange(tree_thread,tree_order) |>
+    dplyr::select(-.tree_id,-.tree_parent)
 
 }
 
@@ -81,6 +81,7 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 #' @param data Dataframe with the columns tree_id, tree_parent, tree_thread, tree_level, tree_order
 #' @return Dataframe with lft and rght values
 #' @export
+#' @importFrom rlang .data
 tree_add_mptt <- function(data) {
   # Progress
   .maxlevel = max(data$tree_level)
@@ -93,36 +94,36 @@ tree_add_mptt <- function(data) {
     p(message=paste0("Level ",.level))
 
     descendants <- data |>
-      filter(tree_level == .level)  |>
-      mutate(tree_descendants = tree_descendants + 1) |>
-      group_by(tree_thread, tree_id=tree_parent) |>
-      summarise(tree_tmp_descendants = sum(tree_descendants),.groups="keep") |>
-      ungroup(tree_thread, tree_id)
+      dplyr::filter(tree_level == .level)  |>
+      dplyr::mutate(tree_descendants = tree_descendants + 1) |>
+      dplyr::group_by(tree_thread, tree_id=tree_parent) |>
+      dplyr::summarise(tree_tmp_descendants = sum(tree_descendants),.groups="keep") |>
+      dplyr::ungroup(tree_thread, tree_id)
 
     data <-  data |>
-      left_join(descendants, by=c("tree_thread", "tree_id")) |>
-      replace_na(list(tree_tmp_descendants=0)) |>
-      mutate(tree_descendants = tree_descendants + tree_tmp_descendants) |>
-      select(-tree_tmp_descendants)
+      dplyr::left_join(descendants, by=c("tree_thread", "tree_id")) |>
+      tidyr::replace_na(list(tree_tmp_descendants=0)) |>
+      dplyr::mutate(tree_descendants = tree_descendants + tree_tmp_descendants) |>
+      dplyr::select(-tree_tmp_descendants)
 
   }
 
 
   # Add left
   data <- data |>
-    group_by(tree_thread, tree_parent) |>
-    arrange(tree_order) |>
-    mutate(tree_no = row_number()) |>
-    mutate(tree_rgt = 1 + cumsum(tree_descendants)*2 + (2 * (tree_no-1)) + 1) |>
-    mutate(tree_lft = tree_rgt - 2*tree_descendants - 1) |>
-    ungroup(tree_thread,tree_parent) |>
-    select(-tree_descendants)
+    dplyr::group_by(tree_thread, tree_parent) |>
+    dplyr::arrange(tree_order) |>
+    dplyr::mutate(tree_no = dplyr::row_number()) |>
+    dplyr::mutate(tree_rgt = 1 + cumsum(tree_descendants)*2 + (2 * (tree_no-1)) + 1) |>
+    dplyr::mutate(tree_lft = tree_rgt - 2*tree_descendants - 1) |>
+    dplyr::ungroup(tree_thread,tree_parent) |>
+    dplyr::select(-tree_descendants)
 
 
   # Bubble from parents to children
   .level <- .minlevel
   parents <- data |>
-    filter(tree_level == .minlevel)
+    dplyr::filter(tree_level == .minlevel)
 
   while(nrow(parents) > 0) {
 
@@ -130,21 +131,21 @@ tree_add_mptt <- function(data) {
     .level <- .level + 1
 
     data <- data |>
-      left_join(select(parents,tree_thread,tree_id,tree_parent_lft=tree_lft),
+      dplyr::left_join(dplyr::select(parents,tree_thread,tree_id,tree_parent_lft=tree_lft),
                 by=c("tree_thread","tree_parent"="tree_id"))|>
-      replace_na(list(tree_parent_lft = 0)) |>
-      mutate(tree_lft = tree_lft + tree_parent_lft) |>
-      mutate(tree_rgt = tree_rgt + tree_parent_lft) |>
-      select(-tree_parent_lft)
+      tidyr::replace_na(list(tree_parent_lft = 0)) |>
+      dplyr::mutate(tree_lft = tree_lft + tree_parent_lft) |>
+      dplyr::mutate(tree_rgt = tree_rgt + tree_parent_lft) |>
+      dplyr::select(-tree_parent_lft)
 
     parents <- data |>
-      semi_join(parents,by=c("tree_thread","tree_parent"="tree_id"))
+      dplyr::semi_join(parents,by=c("tree_thread","tree_parent"="tree_id"))
 
   }
 
   data <- data |>
-    arrange(tree_thread, tree_lft) |>
-    select(starts_with("tree_"), everything())
+    dplyr::arrange(tree_thread, tree_lft) |>
+    dplyr::select(tidyselect::starts_with("tree_"), tidyselect::everything())
 
   return(data)
 }
@@ -164,41 +165,41 @@ tree_add_mptt <- function(data) {
 #' @export
 tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
 
-  col_id <- enquo(col_id)
-  col_parent_id <- enquo(col_parent_id)
-  col_lemma <- enquo(col_lemma)
-  join_by_parent = rlang::set_names(quo_name(col_id), quo_name(col_parent_id))
+  col_id <- rlang::enquo(col_id)
+  col_parent_id <- rlang::enquo(col_parent_id)
+  col_lemma <- rlang::enquo(col_lemma)
+  join_by_parent = rlang::set_names(rlang::quo_name(col_id), rlang::quo_name(col_parent_id))
 
 
   # Escape slashes (or other characters used as delimiter) in lemmata
   delim_entity <- paste0("&x", charToRaw(delim),";")
   data <- data |>
-    mutate(!!col_lemma := str_replace_all(!!col_lemma, delim ,delim_entity))
+    dplyr::mutate(!!col_lemma := stringr::str_replace_all(!!col_lemma, delim ,delim_entity))
 
   # Init path
   data <- data |>
-    mutate(tree_path=NA)
+    dplyr::mutate(tree_path=NA)
 
   # Root nodes
   current <- data |>
-    filter(is.na(!!col_parent_id)) |>
-    mutate(tree_path =!!col_lemma) |>
-    select(!!col_id, tree_path)
+    dplyr::filter(is.na(!!col_parent_id)) |>
+    dplyr::mutate(tree_path =!!col_lemma) |>
+    dplyr::select(!!col_id, tree_path)
 
   while(nrow(current) > 0) {
     print(paste0(nrow(current), " nodes processed."))
 
     # Update path of current batch
     data <- data |>
-      left_join(select(current,!!col_id,.tree_path_new=tree_path),by=quo_name(col_id)) |>
-      mutate(tree_path = ifelse(is.na(.tree_path_new), tree_path, .tree_path_new)) |>
-      select(-.tree_path_new)
+      dplyr::left_join(dplyr::select(current,!!col_id,.tree_path_new=tree_path),by=rlang::quo_name(col_id)) |>
+      dplyr::mutate(tree_path = ifelse(is.na(.tree_path_new), tree_path, .tree_path_new)) |>
+      dplyr::select(-.tree_path_new)
 
     # Get children of current batch and create path
     current <- data |>
-      inner_join(select(current, !!col_id,.tree_parent_path = tree_path),by=join_by_parent) |>
-      mutate(tree_path = paste0(.tree_parent_path, " ", delim, " ", !!col_lemma)) |>
-      select(!!col_id, tree_path)
+      dplyr::inner_join(dplyr::select(current, !!col_id,.tree_parent_path = tree_path),by=join_by_parent) |>
+      dplyr::mutate(tree_path = paste0(.tree_parent_path, " ", delim, " ", !!col_lemma)) |>
+      dplyr::select(!!col_id, tree_path)
   }
 
   return(data)
@@ -229,11 +230,11 @@ tree_get_nodes <- function(edges, col_source, col_target) {
 #' @return Data frame containing the nodes of .data and all ancestors
 #' @export
 tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
-  id <- enquo(id)
-  parent_id <- enquo(parent_id)
+  id <- rlang::enquo(id)
+  parent_id <- rlang::enquo(parent_id)
 
   # Equavalent to c("id" = "parent_id"), note the changed field order
-  join_semi = rlang::set_names(quo_name(parent_id), quo_name(id))
+  join_semi = rlang::set_names(rlang::quo_name(parent_id), rlang::quo_name(id))
 
   selected = tibble::tibble()
 
@@ -241,7 +242,7 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
     print(paste0(nrow(.data), " nodes added" ))
     selected <-  dplyr::bind_rows(selected, .data)
     .data <-  dplyr::semi_join(.tree, .data,by=join_semi)
-    .data <- dplyr::anti_join(.data,selected,by=quo_name(id))
+    .data <- dplyr::anti_join(.data,selected,by=rlang::quo_name(id))
   }
 
   return (selected)
@@ -264,45 +265,45 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
 tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
 
   # Quoting
-  col_id <- enquo(col_id)
-  col_parent <- enquo(col_parent)
-  col_stack <- enquo(col_stack)
+  col_id <- rlang::enquo(col_id)
+  col_parent <- rlang::enquo(col_parent)
+  col_stack <- rlang::enquo(col_stack)
 
   # Prepare temporary columns (for easier joins)
-  data <- mutate(data,.tree_id=!!col_id)
-  data <- mutate(data,.tree_parent=!!col_parent)
+  data <- dplyr::mutate(data,.tree_id=!!col_id)
+  data <- dplyr::mutate(data,.tree_parent=!!col_parent)
 
   # Put items themselves on the stack
-  data_stacked <- mutate(data,.tree_main=.tree_id)
+  data_stacked <- dplyr::mutate(data,.tree_main=.tree_id)
 
   # Init parents (.tree_main is the parent id)
   data_parents <- data |>
-    filter(!is.na(.tree_parent)) |>
-    mutate(.tree_main=.tree_parent)
+    dplyr::filter(!is.na(.tree_parent)) |>
+    dplyr::mutate(.tree_main=.tree_parent)
 
   while (TRUE) {
 
     if (nrow(data_parents) > 0) {
       cat("Adding ", nrow(data_parents)," rows. \n",sep = "")
-      data_stacked <- bind_rows(data_stacked, data_parents)
+      data_stacked <- dplyr::bind_rows(data_stacked, data_parents)
     } else {
       break
     }
 
     # Find parents
     data_parents <- data_parents |>
-      inner_join(
-        select(data, .tree_id, .tree_main = .tree_parent),
+      dplyr::inner_join(
+        dplyr::select(data, .tree_id, .tree_main = .tree_parent),
         by=c(".tree_main"=".tree_id")
       ) |>
-      filter(!is.na(.tree_main.y)) |>
-      mutate(.tree_main = .tree_main.y) |>
-      select(-.tree_main.y)
+      dplyr::filter(!is.na(.tree_main.y)) |>
+      dplyr::mutate(.tree_main = .tree_main.y) |>
+      dplyr::select(-.tree_main.y)
 
   }
 
   # Remove columns and return data
   data_stacked |>
-    select(-.tree_id,-.tree_parent) |>
-    rename(!!col_stack := .tree_main)
+    dplyr::select(-.tree_id,-.tree_parent) |>
+    dplyr::rename(!!col_stack := .tree_main)
 }
