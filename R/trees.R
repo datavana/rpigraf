@@ -163,6 +163,7 @@ tree_add_mptt <- function(data) {
 #' @param delim Character that glues together the path elements. Set to NULL to create a vector instead.
 #' @return A data frame with the additional column tree_path
 #' @export
+#' @importFrom rlang .data
 tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
 
   col_id <- rlang::enquo(col_id)
@@ -218,7 +219,7 @@ tree_get_nodes <- function(edges, col_source, col_target) {
   edges |>
     dplyr::select({{col_source}}, {{col_target}}) |>
     tidyr::pivot_longer(c({{col_source}},{{col_target}})) |>
-    dplyr::distinct(id=value)
+    dplyr::distinct(dplyr::across(tidyselect::all_of("id"="value")))
 }
 
 #' Row bind all ancestors of the selected nodes
