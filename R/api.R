@@ -101,9 +101,9 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   url = api_buildurl(endpoint, params, database)
 
   if (verbose)  {
-    resp <- POST(url, body=payload, encode="json", set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+    resp <- httr::POST(url, body=payload, encode="json", set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
   } else {
-    resp <- POST(url, body=payload, encode="json")
+    resp <- httr::POST(url, body=payload, encode="json")
   }
 
 
@@ -162,9 +162,9 @@ api_job_execute <- function(job_id) {
   while (polling) {
 
     if (verbose) {
-      resp <- POST(url, set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+      resp <- httr::POST(url, set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
     } else {
-      resp <- POST(url)
+      resp <- httr::POST(url)
     }
 
     body <- content(resp)
