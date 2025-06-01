@@ -99,7 +99,7 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   }
 
   # 1. Create job
-  url = api_buildurl(endpoint, params, database)
+  url <- api_buildurl(endpoint, params, database)
 
   if (verbose)  {
     resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
@@ -159,6 +159,7 @@ api_job_execute <- function(job_id) {
 
   url = api_buildurl(paste0("jobs/execute/", job_id))
 
+  result = list()
   polling <- T
   while (polling) {
 
@@ -169,6 +170,7 @@ api_job_execute <- function(job_id) {
     }
 
     body <- httr::content(resp)
+    newresult <- NA
 
     # Request error
     if (resp$status_code != 200)
@@ -192,6 +194,7 @@ api_job_execute <- function(job_id) {
       polling <- T
       error <- F
       message <- purrr::pluck(body,"job","message",.default = NA)
+      newresult <- purrr::pluck(body,"job","result",.default = NA)
 
       delay <- purrr::pluck(body,"job","delay",.default = 0)
       if (delay > 0) {
@@ -216,6 +219,11 @@ api_job_execute <- function(job_id) {
       polling <- F
       error <- F
       message <- purrr::pluck(body,"message",.default = NA)
+      newresult <- purrr::pluck(body,"job","result",.default = NA)
+    }
+
+    if (!is.na(newresult)) {
+      result = append(result, list(newresult))
     }
 
     # Output
@@ -229,7 +237,20 @@ api_job_execute <- function(job_id) {
 
   }
 
-  return (invisible((polling == F) & (error == F)))
+  # Extract solved IDs
+  solved <- lapply(result, \(x) enframe(unlist(x$solved)))
+  result <- lapply(result, \(x) {x$solved <- NULL;x })
+  solved <- do.call(rbind, solved)
+  solved <- distinct(solved)
+
+  result <- list(
+    polling = polling,
+    error = error,
+    data = result,
+    solved = solved
+  )
+
+  return (invisible(result))
 }
 
 
