@@ -98,7 +98,7 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   }
 
   # 1. Create job
-  url = api_buildurl(endpoint, params, database)
+  url <- api_buildurl(endpoint, params, database)
 
   if (verbose)  {
     resp <- httr::POST(url, body=payload, encode="json", set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
@@ -158,7 +158,7 @@ api_job_execute <- function(job_id) {
 
   url = api_buildurl(paste0("jobs/execute/", job_id))
 
-  result = c()
+  result = list()
   polling <- T
   while (polling) {
 
@@ -222,7 +222,7 @@ api_job_execute <- function(job_id) {
     }
 
     if (!is.na(newresult)) {
-      result = c(result, newresult)
+      result = append(result, list(newresult))
     }
 
     # Output
@@ -236,10 +236,17 @@ api_job_execute <- function(job_id) {
 
   }
 
+  # Extract solved IDs
+  solved <- lapply(result, \(x) enframe(unlist(x$solved)))
+  result <- lapply(result, \(x) {x$solved <- NULL;x })
+  solved <- do.call(rbind, solved)
+  solved <- distinct(solved)
+
   result <- list(
     polling = polling,
     error = error,
-    data = result
+    data = result,
+    solved = solved
   )
 
   return (invisible(result))
