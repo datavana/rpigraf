@@ -1,8 +1,10 @@
 #' Get articles (including selected item values)
 #'
 #' @param df A RAM data frame
+#' @param cols Article columns
 #' @param item.type Item types to join
 #' @param item.cols Cols to join from the items
+#' @param property.cols Cols to join from the property
 #' @return A tibble with articles
 #' @export
 distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), property.cols = c()) {
@@ -43,6 +45,9 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
 #' Get the property tree (including annotations)
 #'
 #' @param df A RAM data frame
+#' @param type The property type
+#' @param cols The property columns
+#' @param annos Whether to distill annotations
 #' @return A tibble containing the properties tree
 #' @export
 distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
@@ -133,7 +138,7 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #' @keywords internal
 #'
 #' @param df A RAM data frame
-#' @param item.type The type of items with annotations
+#' @param type The type of items with annotations
 #' @param article.cols A list of article columns to join
 #' @param level The aggregation level, beginning with 0
 #' @importFrom rlang .data

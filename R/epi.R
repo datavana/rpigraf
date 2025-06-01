@@ -212,7 +212,7 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
 #' @export
 epi_wide_to_long <- function(data) {
 
-  rows = tibble::tibble()
+  rows <- tibble::tibble()
 
   # Extract nested rows
   rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "properties"))
@@ -240,7 +240,7 @@ epi_wide_to_long <- function(data) {
     rows <- rows |>
       dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.))) |>
       dplyr::mutate(table=stringr::str_extract(.data$id,"^[^/]+")) |>
-      dplyr::select(table, tidyselect::all_of(c("id")), tidyselect::everything())
+      dplyr::select(tidyselect::all_of(c("table", "id")), tidyselect::everything())
   }
 
   rows

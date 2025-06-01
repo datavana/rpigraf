@@ -8,7 +8,6 @@
 #' @param apiserver URL of the Epigraf server (including https-protocol)
 #' @param apitoken Access token. If NULL, you will be asked to enter the token.
 #' @param verbose Show debug messages and the built URLs
-#' @importFrom rlang .data
 #' @export
 api_setup <- function(apiserver, apitoken=NULL, verbose=F) {
   if (missing(apitoken)) {
@@ -238,10 +237,10 @@ api_job_execute <- function(job_id) {
   }
 
   # Extract solved IDs
-  solved <- lapply(result, \(x) enframe(unlist(x$solved)))
+  solved <- lapply(result, \(x) tibble::enframe(unlist(x$solved)))
   result <- lapply(result, \(x) {x$solved <- NULL;x })
   solved <- do.call(rbind, solved)
-  solved <- distinct(solved)
+  solved <- dplyr::distinct(solved)
 
   result <- list(
     polling = polling,
@@ -380,7 +379,7 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   # IRI path
   data <- data |>
-    dplyr::select(data$id, tidyselect::everything()) |>
+    dplyr::select(tidyselect::all_of("id"), tidyselect::everything()) |>
 
     # Remove complete empty columns
     dplyr::select(tidyselect::where(~!all(is.na(.x)))) |>

@@ -2,7 +2,7 @@
 #'
 #' @keywords internal
 #'
-#' @param y A list
+#' @param ... Not used, for compatibility with na.omit()
 #' @return A cleaned list
 #' @importFrom stats na.omit
 #' @export

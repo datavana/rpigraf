@@ -8,6 +8,12 @@ distill_properties(df, type = NULL, cols = c(), annos = FALSE)
 }
 \arguments{
 \item{df}{A RAM data frame}
+
+\item{type}{The property type}
+
+\item{cols}{The property columns}
+
+\item{annos}{Whether to distill annotations}
 }
 \value{
 A tibble containing the properties tree

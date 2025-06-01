@@ -50,8 +50,10 @@ ram_add <- function(df, rows, skip=FALSE) {
 #' # Add RAM rows
 #' df <- df |>
 #'  df_to_ram(
-#'    item.cols = c("content" = "text"),
-#'    article.cols = c("id" = "case", "signature" = "case", "name" = "title")
+#'    project.fill = c("fragment" = "Example"),
+#'    article.cols = c("id" = "case", "signature" = "case", "name" = "title"),
+#'    section.fill = c("fragment" = "text"),
+#'    item.cols = c("content" = "text")
 #'  )
 #'
 #' ram_compile(df)
@@ -100,23 +102,25 @@ ram_compile <- function(df) {
 #'
 #' # Example data
 #' df <- tribble(
-#'   ~case, ~title, ~text,
-#'   1, "Case 01", "Happy New Year!",
-#'   2, "Case 02", "Happy Easter!",
-#'   3, "Case 03", "Happy Birthday!"
+#'   ~case, ~title,     ~text,
+#'   1,     "Case 01", "Happy New Year!",
+#'   2,     "Case 02", "Happy Easter!",
+#'   3,     "Case 03", "Happy Birthday!"
 #' )
 #'
 #' # Add RAM rows
 #' df <- df |>
 #'  df_to_ram(
-#'    item.cols = c("content" = "text"),
-#'    article.cols = c("id" = "case", "signature" = "case", "name" = "title")
+#'    project.fill = c("fragment" = "Example"),
+#'    article.cols = c("id" = "case", "signature" = "case", "name" = "title"),
+#'    section.fill = c("fragment" = "text"),
+#'    item.cols = c("content" = "text")
 #'  )
 #'
 #' ram_compile(df)
 #'
 #' # Remove RAM rows
-#' df <-ram_clear(df)
+#' df <- ram_clear(df)
 #' ram_compile(df)
 #'
 #' @export
