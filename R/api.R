@@ -158,6 +158,7 @@ api_job_execute <- function(job_id) {
 
   url = api_buildurl(paste0("jobs/execute/", job_id))
 
+  result = c()
   polling <- T
   while (polling) {
 
@@ -168,6 +169,7 @@ api_job_execute <- function(job_id) {
     }
 
     body <- content(resp)
+    newresult <- NA
 
     # Request error
     if (resp$status_code != 200)
@@ -191,6 +193,7 @@ api_job_execute <- function(job_id) {
       polling <- T
       error <- F
       message <- purrr::pluck(body,"job","message",.default = NA)
+      newresult <- purrr::pluck(body,"job","result",.default = NA)
 
       delay <- purrr::pluck(body,"job","delay",.default = 0)
       if (delay > 0) {
@@ -215,6 +218,11 @@ api_job_execute <- function(job_id) {
       polling <- F
       error <- F
       message <- purrr::pluck(body,"message",.default = NA)
+      newresult <- purrr::pluck(body,"job","result",.default = NA)
+    }
+
+    if (!is.na(newresult)) {
+      result = c(result, newresult)
     }
 
     # Output
@@ -228,7 +236,13 @@ api_job_execute <- function(job_id) {
 
   }
 
-  return (invisible((polling == F) & (error == F)))
+  result <- list(
+    polling = polling,
+    error = error,
+    data = result
+  )
+
+  return (invisible(result))
 }
 
 
