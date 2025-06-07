@@ -237,10 +237,13 @@ api_job_execute <- function(job_id) {
   }
 
   # Extract solved IDs
-  solved <- lapply(result, \(x) enframe(unlist(x$solved)))
+  solved <- lapply(result, \(x) tibble::enframe(unlist(x$solved)))
   result <- lapply(result, \(x) {x$solved <- NULL;x })
-  solved <- do.call(rbind, solved)
-  solved <- distinct(solved)
+
+  if (length(solved) > 0) {
+    solved <- do.call(rbind, solved)
+    solved <- dplyr::distinct(solved)
+  }
 
   result <- list(
     polling = polling,
