@@ -1,10 +1,11 @@
 #' Get articles (including selected item values)
 #'
 #' @param df A RAM data frame
+#' @param cols Article columns
 #' @param item.type Item types to join
 #' @param item.cols Cols to join from the items
+#' @param property.cols Cols to join from the property
 #' @return A tibble with articles
-#' @importFrom rlang .data
 #' @export
 distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), property.cols = c()) {
   cases <- df[df$table == "articles", unique(c("id","type","norm_iri", cols))]
@@ -44,6 +45,9 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
 #' Get the property tree (including annotations)
 #'
 #' @param df A RAM data frame
+#' @param type The property type
+#' @param cols The property columns
+#' @param annos Whether to distill annotations
 #' @return A tibble containing the properties tree
 #' @export
 distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
@@ -83,7 +87,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
       props <- dplyr::anti_join(props, links, by="id")
     }
 
-    props <- bind_rows(props, links, items)
+    props <- dplyr::bind_rows(props, links, items)
   }
 
   props
@@ -134,9 +138,10 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #' @keywords internal
 #'
 #' @param df A RAM data frame
-#' @param item.type The type of items with annotations
+#' @param type The type of items with annotations
 #' @param article.cols A list of article columns to join
 #' @param level The aggregation level, beginning with 0
+#' @importFrom rlang .data
 #' @return A tibble containing annotations
 distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
 
@@ -150,41 +155,41 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
   }
 
   ancestors <- codes |>
-    select(id, parent_id) |>
-    tree_stack_ancestors(id, parent_id, anc_id) |>
-    distinct()
+    tidyselect::all_of(c("id", "parent_id"))|>
+    tree_stack_ancestors(.data$id, .data$parent_id, .data$anc_id) |>
+    dplyr::distinct()
 
   codes_level <- codes[codes$level == level,]
 
   links <- epi_extract_long(df, "links", prefix = FALSE)
 
   codings <- links |>
-    distinct(root_id, from_id, from_tagid, to_id) |>
-    left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many") |>
-    inner_join(codes_level, by=c("anc_id"="id")) |>
-    distinct(root_id, from_id, from_tagid, to_id, path) |>
-    left_join(cases, by=c("root_id"="id")) |>
+    dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id")))) |>
+    dplyr::left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many") |>
+    dplyr::inner_join(codes_level, by=c("anc_id"="id")) |>
+    dplyr::distinct(dplyr::across(tidyselect::all_of("root_id", "from_id", "from_tagid", "to_id", "path"))) |>
+    dplyr::left_join(cases, by=c("root_id"="id")) |>
 
-    separate_wider_delim(
-      path, delim=" / ",
+    tidyr::separate_wider_delim(
+      .data$path, delim=" / ",
       names = c(paste0("level_",0:level)),
       cols_remove = F,
       too_many="merge",
       too_few="align_start"
     ) |>
-    mutate(across(starts_with("level_"), ~ str_replace_all(., "&#47;","/"))) |>
-    mutate(across(starts_with("level_"), ~ str_replace_all(., "&x2f;","&")))
+    dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&#47;","/"))) |>
+    dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&x2f;","&")))
 
   segments <- epi_extract_long(df, "items", NULL, prefix = FALSE)  |>
-    select(from_id=id, content, norm_iri) |>
-    inner_join(codings, by=c("from_id"), relationship="many-to-many")  |>
-    select(from_id, from_tagid, content, item_iri=norm_iri) |>
-    rowwise() %>%
-    mutate(segment = paste0(extract_segment(content, from_tagid), collapse=";"))
+    tidyselect::all_of("from_id"="id", "content", "norm_iri") |>
+    dplyr::inner_join(codings, by=c("from_id"), relationship="many-to-many")  |>
+    tidyselect::all_of("from_id", "from_tagid", "content", "item_iri"="norm_iri") |>
+    dplyr::rowwise() |>
+    dplyr::mutate(segment = paste0(extract_segment(.data$content, .data$from_tagid), collapse=";"))
 
-  codings <- left_join(codings, segments, by=c("from_id", "from_tagid"))
+  codings <- dplyr::left_join(codings, segments, by=c("from_id", "from_tagid"))
 
-  codings <- dplyr::select(codings, any_of(c(article.cols, "root_id", "from_tagid", cols, "to_id")))
+  codings <- dplyr::select(codings, tidyselect::any_of(c(article.cols, "root_id", "from_tagid", cols, "to_id")))
   codings
 }
 
@@ -211,9 +216,9 @@ extract_segment <- function(xml, tagid) {
 #' @return A character value where all text contained in tags was stripped
 extract_untagged <- function(xml) {
   xml <- paste0("<root>",xml,"</root>")
-  xml = str_replace_all(xml, "&", "&#038;")
-  xml_doc <- read_xml(xml)
-  root_text <- xml_text(xml_find_all(xml_doc, "/root/text()"))
-  #non_tagged_text <- xml_text(xml_find_all(xml_doc, "//text()[not(parent::*)]"))
+  xml = stringr::str_replace_all(xml, "&", "&#038;")
+  xml_doc <- xml2::read_xml(xml)
+  root_text <- xml2::xml_text(xml2::xml_find_all(xml_doc, "/root/text()"))
+  #non_tagged_text <- xml2::xml_text(xml2::xml_find_all(xml_doc, "//text()[not(parent::*)]"))
   return(trimws(root_text))
 }

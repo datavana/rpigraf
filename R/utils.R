@@ -2,7 +2,7 @@
 #'
 #' @keywords internal
 #'
-#' @param y A list
+#' @param ... Not used, for compatibility with na.omit()
 #' @return A cleaned list
 #' @importFrom stats na.omit
 #' @export
@@ -80,7 +80,7 @@ parse_json <- function(data) {
 #'@export
 merge_lists <- function(l) {
   keys <- unique(unlist(lapply(l, names)))
-  l <- setNames(do.call(mapply, c(FUN=c, lapply(l, `[`, keys))), keys)
+  l <- stats::setNames(do.call(mapply, c(FUN=c, lapply(l, `[`, keys))), keys)
   as.list(l)
 }
 
@@ -157,7 +157,7 @@ pseudonyms <- function(n) {
       c(
         candidates,
         paste0(
-          sample(str_to_upper(letters.consonant), size=todo, replace=T),
+          sample(stringr::str_to_upper(letters.consonant), size=todo, replace=T),
           sample(letters.vocal, size=todo, replace=T),
 
           sample(letters.consonant, size=todo, replace=T),
@@ -209,7 +209,7 @@ bind_rows_char <- function(dataframes){
     })
   }
 
-  return(bind_rows(dataframes))
+  return(dplyr::bind_rows(dataframes))
 }
 
 #' Merge vectors

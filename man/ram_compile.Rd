@@ -32,8 +32,10 @@ df <- tribble(
 # Add RAM rows
 df <- df |>
  df_to_ram(
-   item.cols = c("content" = "text"),
-   article.cols = c("id" = "case", "signature" = "case", "name" = "title")
+   project.fill = c("fragment" = "Example"),
+   article.cols = c("id" = "case", "signature" = "case", "name" = "title"),
+   section.fill = c("fragment" = "text"),
+   item.cols = c("content" = "text")
  )
 
 ram_compile(df)

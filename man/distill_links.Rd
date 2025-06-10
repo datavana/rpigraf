@@ -15,11 +15,11 @@ distill_links(
 \arguments{
 \item{df}{A RAM data frame}
 
+\item{type}{The type of items with annotations}
+
 \item{article.cols}{A list of article columns to join}
 
 \item{level}{The aggregation level, beginning with 0}
-
-\item{item.type}{The type of items with annotations}
 }
 \value{
 A tibble containing annotations

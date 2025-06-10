@@ -187,7 +187,7 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
     dplyr::rename_all(~stringr::str_replace(.,"\\.","_")) |>
     dplyr::distinct() |>
     dplyr::select(tidyselect::where(~!all(is.na(.x)))) |>
-    dplyr::filter(dplyr::if_any(everything(), ~ !is.na(.)))
+    dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.)))
 
   # Remove data that only contains ID columns
   if (length(setdiff(colnames(data), c("id", paste0(cols_keep,"_id")))) == 0) {
@@ -208,10 +208,11 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
 #'             "properties.lemma") will be extracted and stacked to the dataframe.
 #'
 #' @return A dataframe with all input rows and the nested records stacked.
+#' @importFrom rlang .data
 #' @export
 epi_wide_to_long <- function(data) {
 
-  rows = tibble::tibble()
+  rows <- tibble::tibble()
 
   # Extract nested rows
   rows <- dplyr::bind_rows(rows,epi_extract_wide(data, "properties"))
@@ -238,8 +239,8 @@ epi_wide_to_long <- function(data) {
   if ((nrow(rows) > 0) && (ncol(rows) > 0)) {
     rows <- rows |>
       dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.))) |>
-      dplyr::mutate(table=stringr::str_extract(id,"^[^/]+")) |>
-      dplyr::select(table, id, tidyselect::everything())
+      dplyr::mutate(table=stringr::str_extract(.data$id,"^[^/]+")) |>
+      dplyr::select(tidyselect::all_of(c("table", "id")), tidyselect::everything())
   }
 
   rows

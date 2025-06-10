@@ -15,9 +15,13 @@ distill_articles(
 \arguments{
 \item{df}{A RAM data frame}
 
+\item{cols}{Article columns}
+
 \item{item.type}{Item types to join}
 
 \item{item.cols}{Cols to join from the items}
+
+\item{property.cols}{Cols to join from the property}
 }
 \value{
 A tibble with articles

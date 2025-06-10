@@ -7,7 +7,7 @@
 \method{na.omit}{list}(object, ...)
 }
 \arguments{
-\item{y}{A list}
+\item{...}{Not used, for compatibility with na.omit()}
 }
 \value{
 A cleaned list
