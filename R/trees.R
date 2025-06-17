@@ -32,7 +32,7 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
   # First level
   .level <- 1
   children <- data |>
-    dplyr::inner_join(tidyselect::all_of(c("roots",".tree_id","tree_thread")),by=c(".tree_parent"=".tree_id")) |>
+    dplyr::inner_join(dplyr::select(roots, tidyselect::all_of(c(".tree_id","tree_thread"))),by=c(".tree_parent"=".tree_id")) |>
     dplyr::mutate(tree_level=.level) |>
 
     dplyr::group_by(dplyr::across(tidyselect::all_of(".tree_parent"))) |>
@@ -50,7 +50,8 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 
     children.next <- data |>
       dplyr::anti_join(children,by=c(".tree_id")) |>
-      dplyr::inner_join(tidyselect::all_of("children","tree_thread",".tree_id",".parent_order"="tree_order"),by=c(".tree_parent"=".tree_id")) |>
+      dplyr::mutate(.parent_order = .data$tree_order) |>
+      dplyr::inner_join(dplyr::select(children, tidyselect::all_of(c("tree_thread",".tree_id",".parent_order"))),by=c(".tree_parent"=".tree_id")) |>
       dplyr::mutate(tree_level=.level) |>
 
       dplyr::group_by(dplyr::across(tidyselect::all_of(".tree_parent"))) |>
@@ -98,7 +99,8 @@ tree_add_mptt <- function(data) {
     descendants <- data |>
       dplyr::filter(.data$tree_level == .level)  |>
       dplyr::mutate(tree_descendants = .data$tree_descendants + 1) |>
-      dplyr::group_by(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_id"="tree_parent")))) |>
+      dplyr::mutate(tree_id = .data$tree_parent) |>
+      dplyr::group_by(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_id")))) |>
       dplyr::summarise(tree_tmp_descendants = sum(.data$tree_descendants),.groups="keep") |>
       dplyr::ungroup(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_id"))))
 
@@ -133,7 +135,8 @@ tree_add_mptt <- function(data) {
     .level <- .level + 1
 
     data <- data |>
-      dplyr::left_join(tidyselect::all_of(c("parents","tree_thread","tree_id","tree_parent_lft"="tree_lft")),
+      dplyr::mutate(tree_parent_lft = .data$tree_lft) |>
+      dplyr::left_join(dplyr::select(parents, tidyselect::all_of(c("tree_thread","tree_id","tree_parent_lft"))),
                 by=c("tree_thread","tree_parent"="tree_id"))|>
       tidyr::replace_na(list(tree_parent_lft = 0)) |>
       dplyr::mutate(tree_lft = .data$tree_lft + .data$tree_parent_lft) |>
@@ -195,7 +198,12 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
 
     # Update path of current batch
     data <- data |>
-      dplyr::left_join(dplyr::select(current, !!col_id, tidyselect::all_of(c(".tree_path_new"="tree_path"))),by=rlang::quo_name(col_id)) |>
+      dplyr::left_join(
+        current |>
+          dplyr::mutate(.tree_path_new = .data$tree_path) |>
+          dplyr::select(!!col_id, tidyselect::all_of(c(".tree_path_new"))),
+        by=rlang::quo_name(col_id)
+      ) |>
       dplyr::mutate(tree_path = ifelse(is.na(.data$.tree_path_new), .data$tree_path, .data$.tree_path_new)) |>
       dplyr::select(-tidyselect::all_of(".tree_path_new"))
 
@@ -222,7 +230,7 @@ tree_get_nodes <- function(edges, col_source, col_target) {
   edges |>
     dplyr::select({{col_source}}, {{col_target}}) |>
     tidyr::pivot_longer(c({{col_source}},{{col_target}})) |>
-    dplyr::distinct(dplyr::across(tidyselect::all_of("id"="value")))
+    dplyr::distinct(dplyr::across(tidyselect::all_of(c("id"="value"))))
 }
 
 #' Row bind all ancestors of the selected nodes
@@ -268,11 +276,6 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
 #' @export
 tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
 
-  # Quoting
-  col_id <- rlang::enquo(col_id)
-  col_parent <- rlang::enquo(col_parent)
-  col_stack <- rlang::enquo(col_stack)
-
   # Prepare temporary columns (for easier joins)
   data <- dplyr::mutate(data,.tree_id=!!col_id)
   data <- dplyr::mutate(data,.tree_parent=!!col_parent)
@@ -310,6 +313,6 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
   # Remove columns and return data
   data_stacked |>
     dplyr::select(-tidyselect::all_of(c(".tree_id",".tree_parent"))) |>
-    # TODO: Does this work?
-    dplyr::rename(!!col_stack := tidyselect::all_of(".tree_main"))
+    dplyr::mutate(!!col_stack := .data$.tree_main) |>
+    dplyr::select(-tidyselect::all_of(".tree_main"))
 }

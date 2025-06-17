@@ -155,8 +155,8 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
   }
 
   ancestors <- codes |>
-    tidyselect::all_of(c("id", "parent_id"))|>
-    tree_stack_ancestors(.data$id, .data$parent_id, .data$anc_id) |>
+    dplyr::select(tidyselect::all_of(c("id", "parent_id"))) |>
+    tree_stack_ancestors(tidyselect::all_of("id"), tidyselect::all_of("parent_id"), tidyselect::all_of("anc_id")) |>
     dplyr::distinct()
 
   codes_level <- codes[codes$level == level,]
@@ -167,7 +167,7 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
     dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id")))) |>
     dplyr::left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many") |>
     dplyr::inner_join(codes_level, by=c("anc_id"="id")) |>
-    dplyr::distinct(dplyr::across(tidyselect::all_of("root_id", "from_id", "from_tagid", "to_id", "path"))) |>
+    dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id", "path")))) |>
     dplyr::left_join(cases, by=c("root_id"="id")) |>
 
     tidyr::separate_wider_delim(
@@ -181,9 +181,11 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
     dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&x2f;","&")))
 
   segments <- epi_extract_long(df, "items", NULL, prefix = FALSE)  |>
-    tidyselect::all_of("from_id"="id", "content", "norm_iri") |>
+    dplyr::mutate(from_id = .data$id) |>
+    dplyr::select(tidyselect::all_of(c("from_id", "content", "norm_iri"))) |>
     dplyr::inner_join(codings, by=c("from_id"), relationship="many-to-many")  |>
-    tidyselect::all_of("from_id", "from_tagid", "content", "item_iri"="norm_iri") |>
+    dplyr::mutate(item_iri = .data$norm_iri) |>
+    dplyr::select(tidyselect::all_of(c("from_id", "from_tagid", "content", "item_iri"))) |>
     dplyr::rowwise() |>
     dplyr::mutate(segment = paste0(extract_segment(.data$content, .data$from_tagid), collapse=";"))
 
