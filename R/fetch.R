@@ -56,7 +56,7 @@ fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
   # Iterate all IDs
   if (length(ids) > 1) {
     if (!silent) {
-      cli::cli_progress_bar("Fetching data", total = length(ids))
+      cli::cli_progress_bar("Fetching data", type="iterator", total = length(ids))
     }
     data <- tibble::tibble()
 

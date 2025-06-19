@@ -276,9 +276,14 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
 #' @export
 tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
 
+  col_id <- rlang::ensym(col_id)
+  col_parent <- rlang::ensym(col_parent)
+  col_stack <- rlang::ensym(col_stack)
+
+
   # Prepare temporary columns (for easier joins)
-  data <- dplyr::mutate(data,.tree_id=!!col_id)
-  data <- dplyr::mutate(data,.tree_parent=!!col_parent)
+  data <- dplyr::mutate(data,.tree_id = !!col_id)
+  data <- dplyr::mutate(data,.tree_parent = !!col_parent)
 
   # Put items themselves on the stack
   data_stacked <- dplyr::mutate(data,.tree_main=.data$.tree_id)

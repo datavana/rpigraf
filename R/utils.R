@@ -61,6 +61,23 @@ drop_empty_columns <- function(df) {
 }
 
 
+#' Add columns if they are missing from the data frame
+#'
+#' @param df A data frame
+#' @param cols A character vector with column names
+#' @param default A value to set as default for missing columns
+#' @return A data frame with new columns if necessary
+#' @export
+add_missing_columns <- function(df, cols, default = NA) {
+  missing_cols <- setdiff(cols, names(df))
+  for (col in missing_cols) {
+    df[[col]] <- default
+  }
+  df
+}
+
+
+
 #' Parse JSON columns
 #'
 #' @param data A character vector that may contain NAs

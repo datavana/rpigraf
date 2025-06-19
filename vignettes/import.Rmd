@@ -70,9 +70,22 @@ ds <- tribble(
 
 ### Map data to the RAM
 
-The craft methods guide your through the mapping process.
+The craft methods guide your through the mapping process. 
+You start with crafting a project and then, step by step, add articles, sections, items and further content.
+The dataset remembers your crafted data in an attribute. 
+You won't see the RAM data if you simply inspect the data frame. 
+Only intermediary columns storing the last project, article or section IDs are visible.
+To get the RAM data, you call `ram_compile()` in the last step.
 
-Project: As we don't have data about the project in the source data frame, we fill in some values.
+Each craft function supports two parameters:
+- `fill` is used to provide fixed values not contained in the source dataset. 
+  For example, the project name or row types are usually provided by filling in data.
+- `cols` contains a named list that maps columns from the source data frame to the RAM columns in the respective table.
+  For example, you can map the text column to the content field in the items table.
+
+Let's go through it step by step.
+
+**Project:** As we don't have data about the project in the source data frame, we fill in some values.
 The project is named "Movies".
 The type defaults to "default" (optional, if you omit it, "default" is used anyways)
 
@@ -81,21 +94,21 @@ ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "n
 ```
 
 
-Article data is taken from the columns: case, title. 
+**Article data** is taken from the columns: case, title. 
 The type defaults to "default".
 ```{r}
 ds <- craft_articles(ds, fill = c("type" = "default"), cols=c("fragment" = "case", "signature" = "case", "name" = "title"))
 ```
 
 
-The text section is named "Abstract".
+The **text section** is named "Abstract".
 We omit the fragment, it is automatically added and derived from the article fragment.
 You need a fragment, if you have multiple sections of the same type.
 ```{r}
 ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
 ```
 
-The text item data is taken from the columns: text.
+The **text item** data is taken from the columns: text.
 The type is fixed to "text".
 We omit the fragment, it is automatically added and derived from the section fragment.
 You need a fragment, if you have multiple items of the same type.
@@ -104,14 +117,14 @@ You need a fragment, if you have multiple items of the same type.
 ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
 ```
 
-The categories section is named "Genres".
+The **categories section** is named "Genres".
 The type is fixed to "categories".
 
 ```{r}
 ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
 ```
 
-The categories property content is taken from the genre column.
+The **categories property** content is taken from the genre column.
 By crafting a property, the column .property is added to the data frame.
 The categories item content is taken from this column.
 
@@ -130,7 +143,7 @@ epi <- ram_compile(ds)
 ```
 
 
-The RAM data frame is ready to be patched (=uploaded) into Epigraf.
+The RAM data frame is ready to be patched (i.e. uploaded) into Epigraf.
 ```{r eval=FALSE}
 api_patch(epi, db = "epi_movies")
 ```
@@ -140,28 +153,60 @@ api_patch(epi, db = "epi_movies")
 
 ### Fetch data
 
+First, you fetch RAM data from Epigraf. 
+The data contains rows from the RAM tables (projects, articles, sections etc.) below each other.
+
 ```{r eval=FALSE}
 epi <- api_fetch("articles", db = "epi_movies")
 ```
 
 ### Map RAM data to articles and their annotations
 
-Get articles with some item data
+Second, you reduce the RAM data to more convenient data frames with selected columns.
+This process is called distilling. You can start from two perspectives:
+
+- Get articles and join nested content `distill_articles()`.
+- Get properties and, optionally, join annotations from the articles by `distill_properties()`.
+
+#### Get article content
+
+The distill_articles() method pulls article data from the RAM data and joins sections, items and optionally properties used in the items.
+In its most simple form, you get a list of articles with selected columns:
+
+```{r eval=FALSE}
+distill_articles(epi, c("signature", "name"))
+```
+
+To join item data, provide an item type and the columns to extract from the items.
+This results in a data frame with a row for each item (and the respective article columns).
+
+```{r eval=FALSE}
+distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
+
+```
+
+If properties are used in the items, add a parameter that defines which fields to extract from the joined property:
+
 ```{r eval=FALSE}
 distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
 
-distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 ```
 
+#### Get properties and annotations
 
-Get the properties used in the articles.
+To get the properties used in the articles (i.e. properties that were fetched and, thus, are contained in the RAM data),
+you use `distill_properties()` with RAM data in the first parameter and a property type in the second parameter.
+For hierarchical properties, the function will return the property tree.
+
 ```{r eval=FALSE}
 distill_properties(epi, "categories")
 ```
 
+To get the annotations, including coded segments, set the `annos`-parameter to TRUE:
 
-Get the annotations, if any, for a property type.
 ```{r eval=FALSE}
 distill_properties(epi, "categories", annos = TRUE)
 distill_properties(epi, "annotations", annos = TRUE)
+
 ```
+

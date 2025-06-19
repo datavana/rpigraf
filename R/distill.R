@@ -52,9 +52,13 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
 #' @export
 distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   props <- epi_extract_long(df, "properties", type, FALSE)
-  if (!("parent_id" %in% colnames(props))) {
-    props$parent_id <- NA_character_
+
+  if (nrow(props) == 0) {
+    warning(paste0("No property data with type ", type, " found"), call. = F)
+    return (props)
   }
+
+  props <- add_missing_columns(props, "parent_id", NA_character_)
   props <- props[, unique(c("lemma","type","norm_iri", "level","lft","rght","id","parent_id", cols)), drop = FALSE]
   props <- dplyr::arrange(props, !!rlang::sym("lft"))
   props <- tree_add_path(props, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("lemma"))
@@ -65,15 +69,11 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
 
   if (annos) {
 
-    # links
-    links <- distill_links(df, type, c("segment"))
-    links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
-    links <- drop_empty_columns(links)
-
     # Items
-    items <- distill_items(df, NULL, cols = c("articles_id", "property"))
-    items$root_id <- items$articles_id
-    items <- items[, c("property","root_id")]
+    items <- distill_items(df, NULL, cols = c("articles_id","sections_id", "property"))
+
+    items$items_id <- items$id
+    items <- items[, c("property","articles_id", "sections_id", "items_id")]
     items <- stats::na.omit(items)
     items <- dplyr::inner_join(props, items, by=c("id"="property"))
     items <- drop_empty_columns(items)
@@ -83,7 +83,15 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
     }
 
 
+    # links
+    links <- distill_links(df, type, c("segment"))
+
     if (nrow(links) > 0) {
+      links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
+    }
+
+    if (nrow(links) > 0) {
+      links <- drop_empty_columns(links)
       props <- dplyr::anti_join(props, links, by="id")
     }
 
@@ -124,6 +132,7 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 
   #cases <- dplyr::full_join(cases, items, by=c("id" = "items.articles_id"))
   #items <- items[, c(cols),drop = FALSE]
+  items <- add_missing_columns(items, "norm_iri")
   items <- items[, c(extract.cols, "id", "type", "norm_iri"), drop = FALSE]
 
   items <- items |>
@@ -149,23 +158,25 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
   cases <- distill_articles(df, cols = article.cols)
 
   cases <- dplyr::select(cases, -tidyselect::any_of(c("type","norm_iri")))
-
-  if (!("parent_id" %in% colnames(codes))) {
-    codes$parent_id <- NA_character_
-  }
+  codes <- add_missing_columns(codes, "parent_id", NA_character_)
 
   ancestors <- codes |>
     dplyr::select(tidyselect::all_of(c("id", "parent_id"))) |>
-    tree_stack_ancestors(tidyselect::all_of("id"), tidyselect::all_of("parent_id"), tidyselect::all_of("anc_id")) |>
+    tree_stack_ancestors("id", "parent_id",  "anc_id") |>
     dplyr::distinct()
 
   codes_level <- codes[codes$level == level,]
 
   links <- epi_extract_long(df, "links", prefix = FALSE)
+  if (nrow(links) == 0) {
+    return (tibble())
+  }
 
   codings <- links |>
     dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id")))) |>
-    dplyr::left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many") |>
+    dplyr::left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many")
+
+  codings <- codings |>
     dplyr::inner_join(codes_level, by=c("anc_id"="id")) |>
     dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id", "path")))) |>
     dplyr::left_join(cases, by=c("root_id"="id")) |>
@@ -180,18 +191,24 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
     dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&#47;","/"))) |>
     dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&x2f;","&")))
 
-  segments <- epi_extract_long(df, "items", NULL, prefix = FALSE)  |>
-    dplyr::mutate(from_id = .data$id) |>
-    dplyr::select(tidyselect::all_of(c("from_id", "content", "norm_iri"))) |>
-    dplyr::inner_join(codings, by=c("from_id"), relationship="many-to-many")  |>
+
+  segments <- epi_extract_long(df, "items", NULL, prefix = FALSE)
+  segments$items_id <-  segments$id
+  segments <- add_missing_columns(segments, "norm_iri", NA)
+
+  segments <- segments |>
+    dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "content", "norm_iri"))) |>
+    dplyr::inner_join(codings, by=c("items_id" = "from_id"), relationship="many-to-many")  |>
     dplyr::mutate(item_iri = .data$norm_iri) |>
-    dplyr::select(tidyselect::all_of(c("from_id", "from_tagid", "content", "item_iri"))) |>
+    dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "from_tagid", "content", "item_iri"))) |>
     dplyr::rowwise() |>
     dplyr::mutate(segment = paste0(extract_segment(.data$content, .data$from_tagid), collapse=";"))
 
-  codings <- dplyr::left_join(codings, segments, by=c("from_id", "from_tagid"))
+  codings <- dplyr::left_join(codings, segments, by=c("from_id" = "items_id", "from_tagid"))
+  codings$items_id <- codings$from_id
 
-  codings <- dplyr::select(codings, tidyselect::any_of(c(article.cols, "root_id", "from_tagid", cols, "to_id")))
+  codings <- dplyr::select(codings, tidyselect::any_of(c(article.cols, "articles_id","sections_id","items_id", "from_tagid", cols, "to_id")))
+  codings <- add_missing_columns(codings, "to_id", NA)
   codings
 }
 
