@@ -4,7 +4,7 @@
 \alias{api_table}
 \title{Download tables}
 \usage{
-api_table(endpoint, params = c(), db, maxpages = 1, silent = FALSE)
+api_table(endpoint, params = c(), db = NA, maxpages = 1, silent = FALSE)
 }
 \arguments{
 \item{endpoint}{The endpoint path (e.g. "articles/index" or "articles/view/1")}

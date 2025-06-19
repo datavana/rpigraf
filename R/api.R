@@ -80,6 +80,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
 
 }
 
+
 #' Create and execute a job
 #'
 #' @param endpoint The endpoint supporting job creation
@@ -101,7 +102,7 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   url <- api_buildurl(endpoint, params, database)
 
   if (verbose)  {
-    resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+    resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
   } else {
     resp <- httr::POST(url, body=payload, encode="json")
   }
@@ -163,7 +164,7 @@ api_job_execute <- function(job_id) {
   while (polling) {
 
     if (verbose) {
-      resp <- httr::POST(url, httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+      resp <- httr::POST(url, httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
     } else {
       resp <- httr::POST(url)
     }
@@ -270,7 +271,7 @@ api_job_execute <- function(job_id) {
 #'                 Set to 1 for non-paginated tables.
 #' @param silent Whether to output status messages
 #' @export
-api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
+api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
 
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
 
@@ -295,7 +296,7 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
       {
 
         if (verbose)  {
-          resp <- httr::GET(url, httr::set_cookies(XDEBUG_SESSION="XDEBUG_ECLIPSE"))
+          resp <- httr::GET(url, httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
         } else {
           resp <- httr::GET(url)
         }
@@ -347,6 +348,65 @@ api_table <- function(endpoint, params=c(), db, maxpages=1, silent=FALSE) {
   .to_epitable(data, c("endpoint"=endpoint, "params" = params, "db"=db))
 }
 
+
+
+#' Post data to epigraf
+#'
+#' @param endpoint The endpoint supporting job creation
+#' @param params Query parameters
+#' @param payload The data posted to the endpoint
+#' @param database The selected database
+#' @return void
+#' @export
+api_post <- function(endpoint, params=c(), payload=NULL, database = NA) {
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+  server <- Sys.getenv("epi_apiserver")
+
+  print (paste0("Posting data to ", server))
+  if (!isLocalServer(server)) {
+    confirmAction()
+  }
+
+  # 1. Post data
+  url <- api_buildurl(endpoint, params, database)
+
+  if (verbose)  {
+    resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
+  } else {
+    resp <- httr::POST(url, body=payload, encode="json")
+  }
+
+
+  body <- httr::content(resp)
+
+  error <- F
+  message <- NA
+
+  # Request error
+  if (resp$status_code != 200)
+  {
+    error <- T
+    message <- purrr::pluck(body,"error","message",.default = NA)
+  }
+
+  # Post error
+  else if (purrr::pluck(body,"status","success",.default = TRUE) != TRUE)
+  {
+    error <- T
+    message <- purrr::pluck(body,"status","message",.default = NA)
+  }
+
+  if (!is.na(message)){
+    print(message)
+  }
+
+  result <- list(
+    error = error,
+    data = body
+  )
+
+  return (invisible(result))
+}
 
 
 #' Patch data

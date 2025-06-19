@@ -15,3 +15,4 @@ A data frame without columns that only contain NA values
 \description{
 Remove empty columns
 }
+\keyword{internal}

@@ -6,7 +6,7 @@
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
 #' @export
-api_fetch <- function(table, params=c(), db, maxpages=1) {
+api_fetch <- function(table, params=c(), db = NA, maxpages=1) {
   fetch_table(table, "id", params, db, maxpages) |>
     fetch_entity()
 }
@@ -20,7 +20,7 @@ api_fetch <- function(table, params=c(), db, maxpages=1) {
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
 #' @export
-fetch_table <- function(table, columns=c(), params=c(), db, maxpages=1) {
+fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
 
   columns <-unique(c("id",columns))
   columns <- paste0(columns, collapse = ",")
@@ -46,7 +46,10 @@ fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
   if (is.null(db) && ("epi_tbl" %in% class(ids))) {
     db <- attr(ids, "source")["db"]
   }
-  check_is_db(db)
+
+  if (!is.na(db)) {
+    check_is_db(db)
+  }
 
   # Get the ID vector from a dataframe
   if (is.data.frame(ids)) {

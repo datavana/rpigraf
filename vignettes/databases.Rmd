@@ -1,0 +1,44 @@
+
+---
+title: "Manage Epigraf databases"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{import}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", 
+  message = FALSE, 
+  warning = FALSE
+)
+
+library(tidyverse)
+library(httr)
+library(rpigraf)
+
+api_setup("http://127.0.0.1", "devel", T)
+
+```
+
+
+
+```{r}
+
+# Create a database
+api_post("databanks/add", payload=list("name"="dio","category"="DIO"))
+
+# Clear databases in a category
+dbs <- fetch_table("databanks", params=c("category"="DIO"))
+
+for (dbid in dbs$id) {
+  api_post(paste0("databanks/drop/", dbid))
+  api_post(paste0("databanks/create/", dbid))
+}
+
+```

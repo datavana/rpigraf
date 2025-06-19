@@ -4,7 +4,7 @@
 \alias{fetch_table}
 \title{Fetch tables such as articles, projects or properties}
 \usage{
-fetch_table(table, columns = c(), params = c(), db, maxpages = 1)
+fetch_table(table, columns = c(), params = c(), db = NA, maxpages = 1)
 }
 \arguments{
 \item{table}{The table name (e.g. "articles")}

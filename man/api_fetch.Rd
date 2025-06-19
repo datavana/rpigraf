@@ -4,7 +4,7 @@
 \alias{api_fetch}
 \title{Fetch entity data such as articles, projects or properties}
 \usage{
-api_fetch(table, params = c(), db, maxpages = 1)
+api_fetch(table, params = c(), db = NA, maxpages = 1)
 }
 \arguments{
 \item{table}{The table name (e.g. "articles")}
