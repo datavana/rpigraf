@@ -1,5 +1,9 @@
 #' Fetch entity data such as articles, projects or properties
 #'
+#' Returns all data belonging to all entities matched by the params.
+#' The procedure corresponds to calling the index action
+#' with the columns parameter set to 0 in the Epigraf interface.
+#'
 #' @param table The table name (e.g. "articles")
 #' @param params A named list of query params
 #' @param db The database name
@@ -7,11 +11,21 @@
 #'                 Set to 1 for non-paginated tables.
 #' @export
 api_fetch <- function(table, params=c(), db = NA, maxpages=1) {
-  fetch_table(table, "id", params, db, maxpages) |>
-    fetch_entity()
+
+  params["columns"] <- "0"
+  params["idents"] <- "id"
+  df <- api_table(table, params, db, maxpages)
+  df$table <- stringr::str_extract(df$id,"^[a-z]+")
+  df
+
+  # fetch_table(table, "id", params, db, maxpages) |>
+  #  fetch_entity()
 }
 
 #' Fetch tables such as articles, projects or properties
+#'
+#' Returns a row with defined columns for each record matched by the params.
+#' The procedure corresponds to calling the index action in the Epigraf interface.
 #'
 #' @param table The table name (e.g. "articles")
 #' @param columns A vector of column names.
@@ -32,6 +46,9 @@ fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
 }
 
 #' Fetch entities such as single articles, projects or properties
+#'
+#' Returns all data belonging to the entity identified by ID.
+#' The procedure corresponds to calling the view action in the Epigraf interface.
 #'
 #' @param ids A character vector with IDs as returned by fetch_table, e.g. articles-1.
 #'            Alternatively, provide a dataframe containg the IDs in the id-column.

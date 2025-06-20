@@ -19,5 +19,6 @@ In this case, the database name will be extracted from the dataframe.}
 \item{silent}{Whether to output a progress bar}
 }
 \description{
-Fetch entities such as single articles, projects or properties
+Returns all data belonging to the entity identified by ID.
+The procedure corresponds to calling the view action in the Epigraf interface.
 }

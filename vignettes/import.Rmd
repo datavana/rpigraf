@@ -34,6 +34,8 @@ It consists of the following tables:
 - Articles: Each article contains sections.
 - Sections: Each section contains items.
 - Items: Items contain the article content (text, references to categories etc.)
+- Links: Annotations are stored as links between tags in item content and categories.
+- Footnotes: Textual annotations are stored in the footnotes table.
 - Categories: Vocabularies used for tagging items and annotating text.
 
 Each row in a table is identified by an IRI (Internationalized Resource Identifier),

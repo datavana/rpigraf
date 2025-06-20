@@ -17,5 +17,7 @@ api_fetch(table, params = c(), db = NA, maxpages = 1)
 Set to 1 for non-paginated tables.}
 }
 \description{
-Fetch entity data such as articles, projects or properties
+Returns all data belonging to all entities matched by the params.
+The procedure corresponds to calling the index action
+with the columns parameter set to 0 in the Epigraf interface.
 }

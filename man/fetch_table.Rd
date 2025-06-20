@@ -19,5 +19,6 @@ fetch_table(table, columns = c(), params = c(), db = NA, maxpages = 1)
 Set to 1 for non-paginated tables.}
 }
 \description{
-Fetch tables such as articles, projects or properties
+Returns a row with defined columns for each record matched by the params.
+The procedure corresponds to calling the index action in the Epigraf interface.
 }

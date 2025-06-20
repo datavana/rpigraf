@@ -1,0 +1,120 @@
+---
+title: "Import data into Epigraf"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{import}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", 
+  message = FALSE, 
+  warning = FALSE
+)
+
+library(tidyverse)
+library(httr)
+library(rpigraf)
+
+api_setup("http://localhost", "devel")
+
+```
+
+Epigraf stores data in a format called Relational Article Model (RAM).
+
+RAM is a model to represent documents in tables. 
+It consists of the following tables:
+
+- Projects: Each article is assigned to a project.
+- Articles: Each article contains sections.
+- Sections: Each section contains items.
+- Items: Items contain the article content (text, references to categories etc.)
+- Links: Annotations are stored as links between tags in item content and categories.
+- Footnotes: Textual annotations are stored in the footnotes table.
+- Categories: Vocabularies used for tagging items and annotating text.
+
+Each row in a table is identified by an IRI (Internationalized Resource Identifier),
+which is a worldwide unique identificator. 
+Understanding the IRI concept of the RAM model is crucial for data transfers:
+
+- Add new data: When you import data with IRIs not yet present in the database,
+  new rows will be added.
+- Update data:  When you import data with IRIs that already exist, 
+  the existing rows will be updated.
+  
+Each IRI used in the RAM consists of the server name (e.g. "https://epigraf.uni-muenster.de/")
+and an IRI path (e.g. "properties/genres/western"). 
+
+The IRI path is stored in the database tables and consists of three elements:
+- Table: One of projects, articles, sections, items, or categories.
+- Type: The row type. For example, you can distinguish different category systems by their type.
+- Fragment: An alphanumeric value used to identify the row in the table.
+
+
+## Download data
+
+### Fetch data
+
+First, you fetch RAM data from Epigraf. 
+The data contains rows from the RAM tables (projects, articles, sections etc.) below each other.
+
+```{r eval=FALSE}
+epi <- api_fetch("articles", db = "epi_movies")
+
+```
+
+### Map RAM data to articles and their annotations
+
+Second, although you can directly work with the RAM data, we suggest you let rpigraf distill flat data frames for you.
+You can start from two perspectives:
+
+- Get articles and, optionally, join nested content with `distill_articles()`.
+- Get properties and, optionally, join annotations from the articles with `distill_properties()`.
+
+#### Get article content
+
+The distill_articles() method pulls article data from the RAM data and joins sections, items and optionally properties used in the items.
+In its most simple form, you get a list of articles with selected columns:
+
+```{r eval=FALSE}
+distill_articles(epi, c("signature", "name"))
+```
+
+To join item data, provide an item type and the columns to extract from the items.
+This results in a data frame with a row for each item (and the respective article columns).
+
+```{r eval=FALSE}
+distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
+
+```
+
+If properties are used in the items, add a parameter that defines which fields to extract from the joined property:
+
+```{r eval=FALSE}
+distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
+
+```
+
+#### Get properties and annotations
+
+To get the properties used in the articles (i.e. properties that were fetched and, thus, are contained in the RAM data),
+you use `distill_properties()` with RAM data in the first parameter and a property type in the second parameter.
+For hierarchical properties, the function will return the property tree.
+
+```{r eval=FALSE}
+distill_properties(epi, "categories")
+```
+
+To get the annotations, including coded segments, set the `annos`-parameter to TRUE:
+
+```{r eval=FALSE}
+distill_properties(epi, "categories", annos = TRUE)
+distill_properties(epi, "annotations", annos = TRUE)
+
+```
+
