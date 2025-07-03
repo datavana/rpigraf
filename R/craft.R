@@ -93,8 +93,10 @@ craft_projects <- function(df, cols = c(), fill = c()) {
   rows <- as.data.frame(rows[, cols, drop = FALSE])
   names(rows) <- names(cols)
 
-  for (name in names(fill)) {
-    rows[[name]] <- fill[[name]]
+  if (nrow(rows) > 0) {
+    for (name in names(fill)) {
+      rows[[name]] <- fill[[name]]
+    }
   }
 
   rows$id <- epi_create_iri("projects", rows$type, rows$fragment)
@@ -106,7 +108,9 @@ craft_projects <- function(df, cols = c(), fill = c()) {
   rows$.project <- rows$id
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  if (nrow(rows) > 0) {
+    rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  }
 
   df <- ram_add(df, rows)
   df
@@ -147,7 +151,9 @@ craft_articles <- function(df, cols = c(), fill = c()) {
   rows$.project <- df$.project
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  if (nrow(rows) > 0) {
+    rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  }
 
   df <- ram_add(df, rows)
   df
@@ -178,8 +184,10 @@ craft_sections <- function(df, cols = c(), fill = c()) {
   rows <- as.data.frame(rows[, cols, drop = FALSE])
   names(rows) <- names(cols)
 
-  for (name in names(fill)) {
-    rows[[name]] <- fill[[name]]
+  if (nrow(rows) > 0) {
+    for (name in names(fill)) {
+      rows[[name]] <- fill[[name]]
+    }
   }
 
   rows$id <- epi_create_iri("sections", rows$type, paste0(epi_iri_parent(rows$articles_id),rows$fragment))
@@ -193,7 +201,10 @@ craft_sections <- function(df, cols = c(), fill = c()) {
   rows$.article <- df$.article
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+
+  if (nrow(rows) > 0) {
+    rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  }
 
   df <- ram_add(df, rows)
   df
@@ -228,8 +239,10 @@ craft_items <- function(df, cols = c(), fill = c()) {
   rows <- as.data.frame(rows[, cols, drop = FALSE])
   names(rows) <- names(cols)
 
-  for (name in names(fill)) {
-    rows[[name]] <- fill[[name]]
+  if (nrow(rows) > 0) {
+    for (name in names(fill)) {
+      rows[[name]] <- fill[[name]]
+    }
   }
 
   rows$id <- epi_create_iri("items", rows$type, paste0(epi_iri_parent(rows$sections_id),rows$fragment))
@@ -245,7 +258,9 @@ craft_items <- function(df, cols = c(), fill = c()) {
   rows$.section <- df$.section
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  if (nrow(rows) > 0) {
+    rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  }
 
   df <- ram_add(df, rows)
   df
@@ -269,8 +284,10 @@ craft_properties <- function(df, cols = c(), fill = c()) {
   rows <- as.data.frame(rows[, cols, drop = FALSE])
   names(rows) <- names(cols)
 
-  for (name in names(fill)) {
-    rows[[name]] <- fill[[name]]
+  if (nrow(rows) > 0) {
+    for (name in names(fill)) {
+      rows[[name]] <- fill[[name]]
+    }
   }
 
   rows$id <- epi_create_iri("properties", rows$type, rows$fragment)
@@ -282,7 +299,9 @@ craft_properties <- function(df, cols = c(), fill = c()) {
   rows$.property <- rows$id
 
   rows <- dplyr::distinct(rows)
-  rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  if (nrow(rows) > 0) {
+    rows$`_fields` <- paste0(c(cols,"type","norm_iri"), collapse=",")
+  }
 
   df <- ram_add(df, rows)
   df

@@ -22,6 +22,10 @@ epi_create_iri <- function(table, type, fragment, split=F) {
   #   }
   # }
 
+  if ((length(table) * length(type) * length(fragment)) == 0) {
+    return (character(0))
+  }
+
   table <- paste0(table, "/")
   type <- ifelse(is.na(type),"", paste0(type, "/"))
   fragment <- epi_clean_irifragment(fragment)
