@@ -114,6 +114,21 @@ num2abc <- function(number, base = 26) {
   paste(letters[digits + 1], collapse = "")
 }
 
+#' Convert letters to a number, e.g. c becomes 3
+#'
+#' @param s The string to convert (lowercase letters)
+#' @param base The number of letters to use (default 26 for a-z)
+#' @export
+abc2num <- function(s, base = 26) {
+  s <- tolower(s)
+  chars <- strsplit(s, NULL)[[1]]
+  digits <- match(chars, letters) - 1  # 0-index
+  n <- length(digits)
+  offset <- if(n > 1) sum(base ^ seq(0, n-2)) else 0
+  number <- sum(digits * base ^ rev(seq(0, n-1)))
+  number + offset + 1
+}
+
 
 #' Converts "b" using the "base"
 #'
