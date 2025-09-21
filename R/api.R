@@ -359,55 +359,23 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
 #' @return void
 #' @export
 api_post <- function(endpoint, params=c(), payload=NULL, database = NA) {
-  verbose <- Sys.getenv("epi_verbose") == "TRUE"
-  server <- Sys.getenv("epi_apiserver")
-
-  print (paste0("Posting data to ", server))
-  if (!isLocalServer(server)) {
-    confirmAction()
-  }
-
-  # 1. Post data
-  url <- api_buildurl(endpoint, params, database)
-
-  if (verbose)  {
-    resp <- httr::POST(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
-  } else {
-    resp <- httr::POST(url, body=payload, encode="json")
-  }
-
-
-  body <- httr::content(resp)
-
-  error <- F
-  message <- NA
-
-  # Request error
-  if (resp$status_code != 200)
-  {
-    error <- T
-    message <- purrr::pluck(body,"error","message",.default = NA)
-  }
-
-  # Post error
-  else if (purrr::pluck(body,"status","success",.default = TRUE) != TRUE)
-  {
-    error <- T
-    message <- purrr::pluck(body,"status","message",.default = NA)
-  }
-
-  if (!is.na(message)){
-    print(message)
-  }
-
-  result <- list(
-    error = error,
-    data = body
-  )
-
+  result <- .api_request(endpoint, params, payload, database, httr::POST)
   return (invisible(result))
 }
 
+
+#' Delete epigraf data
+#'
+#' @param endpoint The endpoint supporting job creation
+#' @param params Query parameters
+#' @param payload The data posted to the endpoint
+#' @param database The selected database
+#' @return void
+#' @export
+api_delete <- function(endpoint, params=c(), payload=NULL, database = NA) {
+  result <- .api_request(endpoint, params, payload, database, httr::DELETE)
+  return (invisible(result))
+}
 
 #' Patch data
 #'
@@ -463,6 +431,66 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   api_job_create("articles/import", NA, db,list(data=data))
 }
+
+#' Send request to epigraf
+#'
+#' @keywords internal
+#' @param endpoint The endpoint supporting job creation
+#' @param params Query parameters
+#' @param payload The data posted to the endpoint
+#' @param database The selected database
+#' @param method One of the httr functions (httr::POST, httr::DELETE)
+#' @return void
+.api_request <- function(endpoint, params=c(), payload=NULL, database = NA, method = httr::POST) {
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+  server <- Sys.getenv("epi_apiserver")
+
+  print (paste0("Posting data to ", server))
+  if (!isLocalServer(server)) {
+    confirmAction()
+  }
+
+  # 1. Post data
+  url <- api_buildurl(endpoint, params, database)
+
+  if (verbose)  {
+    resp <- method(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
+  } else {
+    resp <- method(url, body=payload, encode="json")
+  }
+
+
+  body <- httr::content(resp)
+
+  error <- F
+  message <- NA
+
+  # Request error
+  if (resp$status_code != 200)
+  {
+    error <- T
+    message <- purrr::pluck(body,"error","message",.default = NA)
+  }
+
+  # Post error
+  else if (purrr::pluck(body,"status","success",.default = TRUE) != TRUE)
+  {
+    error <- T
+    message <- purrr::pluck(body,"status","message",.default = NA)
+  }
+
+  if (!is.na(message)){
+    print(message)
+  }
+
+  result <- list(
+    error = error,
+    data = body
+  )
+
+  return (invisible(result))
+}
+
 
 #' Add the epi_tbl class and make it remember its source
 #'

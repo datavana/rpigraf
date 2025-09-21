@@ -3,6 +3,7 @@
 S3method(na.omit,list)
 export(abc2num)
 export(api_buildurl)
+export(api_delete)
 export(api_fetch)
 export(api_job_create)
 export(api_job_execute)
