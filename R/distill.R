@@ -169,7 +169,7 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
 
   links <- epi_extract_long(df, "links", prefix = FALSE)
   if (nrow(links) == 0) {
-    return (tibble())
+    return (tibble::tibble())
   }
 
   codings <- links |>

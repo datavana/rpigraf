@@ -1,9 +1,8 @@
-
 ---
 title: "Manage Epigraf databases"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{import}
+  %\VignetteIndexEntry{databases}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

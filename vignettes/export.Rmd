@@ -2,7 +2,7 @@
 title: "Import data into Epigraf"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{import}
+  %\VignetteIndexEntry{export}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
