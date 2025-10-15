@@ -363,6 +363,21 @@ api_post <- function(endpoint, params=c(), payload=NULL, database = NA) {
   return (invisible(result))
 }
 
+#' Upload file to epigraf
+#'
+#' @param endpoint The endpoint path
+#' @param params Query parameters
+#' @param filepath A full path to the local file
+#' @param mimetype The mime type fof the file. Will be guessed if empty.
+#' @param database The selected database
+#' @return void
+#' @export
+api_upload <- function(endpoint, params=c(), filepath=NULL, mimetype = NULL, database = NA) {
+  payload <- list("FileData[0]" = httr::upload_file(filepath, mimetype))
+  result <- .api_request(endpoint, params, payload, database, httr::POST, encode = "multipart")
+  return (invisible(result))
+}
+
 
 #' Delete epigraf data
 #'
@@ -440,8 +455,10 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 #' @param payload The data posted to the endpoint
 #' @param database The selected database
 #' @param method One of the httr functions (httr::POST, httr::DELETE)
+#' @param encode Payload encoding. Passed to the httr method function.
+#'               See httr::POST for how to upload files with multipart encoding.
 #' @return void
-.api_request <- function(endpoint, params=c(), payload=NULL, database = NA, method = httr::POST) {
+.api_request <- function(endpoint, params=c(), payload=NULL, database = NA, method = httr::POST, encode = "json") {
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
   server <- Sys.getenv("epi_apiserver")
 
@@ -454,9 +471,9 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
   url <- api_buildurl(endpoint, params, database)
 
   if (verbose)  {
-    resp <- method(url, body=payload, encode="json", httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
+    resp <- method(url, body=payload, encode=encode, httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
   } else {
-    resp <- method(url, body=payload, encode="json")
+    resp <- method(url, body=payload, encode=encode)
   }
 
 

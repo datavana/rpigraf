@@ -9,7 +9,8 @@
   params = c(),
   payload = NULL,
   database = NA,
-  method = httr::POST
+  method = httr::POST,
+  encode = "json"
 )
 }
 \arguments{
@@ -22,6 +23,9 @@
 \item{database}{The selected database}
 
 \item{method}{One of the httr functions (httr::POST, httr::DELETE)}
+
+\item{encode}{Payload encoding. Passed to the httr method function.
+See httr::POST for how to upload files with multipart encoding.}
 }
 \value{
 void
