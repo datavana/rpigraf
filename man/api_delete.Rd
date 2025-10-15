@@ -7,7 +7,7 @@
 api_delete(endpoint, params = c(), payload = NULL, database = NA)
 }
 \arguments{
-\item{endpoint}{The endpoint supporting job creation}
+\item{endpoint}{The endpoint path}
 
 \item{params}{Query parameters}
 

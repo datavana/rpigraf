@@ -352,7 +352,7 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
 
 #' Post data to epigraf
 #'
-#' @param endpoint The endpoint supporting job creation
+#' @param endpoint The endpoint path
 #' @param params Query parameters
 #' @param payload The data posted to the endpoint
 #' @param database The selected database
@@ -366,7 +366,7 @@ api_post <- function(endpoint, params=c(), payload=NULL, database = NA) {
 
 #' Delete epigraf data
 #'
-#' @param endpoint The endpoint supporting job creation
+#' @param endpoint The endpoint path
 #' @param params Query parameters
 #' @param payload The data posted to the endpoint
 #' @param database The selected database
