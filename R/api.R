@@ -93,7 +93,11 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
   server <- Sys.getenv("epi_apiserver")
 
-  print (paste0("Creating job on server ", server))
+  silent <- Sys.getenv("epi_silent")
+  if (silent != "TRUE") {
+    print(paste0("Creating job on server ", server))
+  }
+
   if (!isLocalServer(server)) {
     confirmAction()
   }
@@ -369,11 +373,12 @@ api_post <- function(endpoint, params=c(), payload=NULL, database = NA) {
 #' @param params Query parameters
 #' @param filepath A full path to the local file
 #' @param mimetype The mime type fof the file. Will be guessed if empty.
+#' @param overwrite Whether to overwrite existing files.
 #' @param database The selected database
 #' @return void
 #' @export
-api_upload <- function(endpoint, params=c(), filepath=NULL, mimetype = NULL, database = NA) {
-  payload <- list("FileData[0]" = httr::upload_file(filepath, mimetype))
+api_upload <- function(endpoint, params=c(), filepath=NULL, mimetype = NULL, overwrite = FALSE, database = NA) {
+  payload <- list("FileData[0]" = httr::upload_file(filepath, mimetype), "FileOverwrite" = ifelse(overwrite,"1","0"))
   result <- .api_request(endpoint, params, payload, database, httr::POST, encode = "multipart")
   return (invisible(result))
 }
@@ -462,7 +467,11 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
   server <- Sys.getenv("epi_apiserver")
 
-  print (paste0("Posting data to ", server))
+  silent <- Sys.getenv("epi_silent")
+  if (silent != "TRUE") {
+    print(paste0("Posting data to ", server))
+  }
+
   if (!isLocalServer(server)) {
     confirmAction()
   }
