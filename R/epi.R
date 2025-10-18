@@ -233,7 +233,10 @@ epi_wide_to_long <- function(data) {
     ) |>
     dplyr::rename_all(~ stringr::str_replace(.,"\\.","_"))
 
-  if ((nrow(extracted) > 0) && (ncol(extracted) > 0)) {
+  if (nrow(rows) == 0) {
+    rows <- extracted
+  }
+  else if ((nrow(extracted) > 0) && (ncol(extracted) > 0)) {
     rows <- dplyr::bind_rows(rows, extracted)
   }
 
