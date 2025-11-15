@@ -268,3 +268,43 @@ default_values <- function(df, colname, default) {
   }
   df
 }
+
+#' Get file extension from URL path component
+#'
+#' @keywords internal
+#'
+#' @param path A file path
+#' @return The file extension, without dot
+get_extension <- function(path) {
+
+  filename <- basename(path)
+
+  # Check if filename has a dot and something after it
+  if (grepl("\\.", filename)) {
+    ext <- sub(".*\\.(.*)$", "\\1", filename)
+
+    # If the dot is at the start (hidden files like .bashrc), treat as no extension:
+    if (startsWith(filename, ".") && !grepl("\\..+\\.", filename)) {
+      return("")
+    } else {
+      return(ext)
+    }
+  } else {
+    return("")
+  }
+}
+
+#' Join folder and filename
+#'
+#' @keywords internal
+#'
+#' @param filename File name
+#' @param filepath Target folder or NULL
+#' @return Joined path.
+join_path <- function(filename, filepath = NULL) {
+  if (is.null(filepath) || filepath == "") {
+    return(filename)
+  } else {
+    return(file.path(filepath, filename))
+  }
+}

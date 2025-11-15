@@ -9,6 +9,7 @@ api_upload(
   params = c(),
   filepath = NULL,
   mimetype = NULL,
+  overwrite = FALSE,
   database = NA
 )
 }
@@ -20,6 +21,8 @@ api_upload(
 \item{filepath}{A full path to the local file}
 
 \item{mimetype}{The mime type fof the file. Will be guessed if empty.}
+
+\item{overwrite}{Whether to overwrite existing files.}
 
 \item{database}{The selected database}
 }

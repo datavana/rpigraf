@@ -1,5 +1,5 @@
 ---
-title: "Import data into Epigraf"
+title: "Fetch data from Epigraf"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{export}

@@ -43,6 +43,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
   server <- Sys.getenv("epi_apiserver")
   token <- Sys.getenv("epi_apitoken")
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
+  silent <- Sys.getenv("epi_silent") == "TRUE"
 
   url <- httr::parse_url(server)
   url$query$token <- token
@@ -56,8 +57,16 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
     endpoint <-  paste0("/", endpoint)
   }
 
+  # Merge endpoint URL (if it contains query params or an extension)
+  parsed_endpoint <- httr::parse_url(endpoint)
+  url$query = merge_lists(list(url$query, as.list(parsed_endpoint$query)))
+  endpoint = parsed_endpoint$path
+  endpoint_extension <- get_extension(endpoint)
 
-  if (is.na(extension)) {
+  if (endpoint_extension != "") {
+    extension = ""
+  }
+  else if (is.na(extension)) {
     extension = ""
   }
   else if (!is.na(extension) && !stringr::str_starts(extension,"\\.")) {
@@ -72,7 +81,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
   }
 
   url <- httr::build_url(url)
-  if (verbose == "TRUE") {
+  if (verbose && !silent) {
     print(url)
   }
 
@@ -383,6 +392,61 @@ api_upload <- function(endpoint, params=c(), filepath=NULL, mimetype = NULL, ove
   return (invisible(result))
 }
 
+
+#' Download a file from Epigraf
+#'
+#' @param endpoint The endpoint path.
+#' @param params Query parameters.
+#' @param filename A file name or a full path to the local file.
+#' @param filepath A target folder path
+#' @param overwrite Whether to overwrite existing files.
+#' @param database The selected database.
+#' @return A list with error and data elements.
+#' @export
+api_download <- function(endpoint, params=c(), filename=NULL, filepath=NULL, overwrite = FALSE, database = NA) {
+
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+  server <- Sys.getenv("epi_apiserver")
+
+  silent <- Sys.getenv("epi_silent")
+  if (silent != "TRUE") {
+    print(paste0("Downloading file from ", server))
+  }
+
+  destfile <- join_path(filename, filepath)
+
+  # 1. Post data
+  url <- api_buildurl(endpoint, params, database, extension = NA)
+
+  if (verbose)  {
+    resp <- httr::GET(url, httr::write_disk(destfile, overwrite = overwrite),  httr::set_cookies(XDEBUG_SESSION=XDEBUG_COOKIE))
+  } else {
+    resp <- httr::GET(url, httr::write_disk(destfile, overwrite = overwrite))
+  }
+
+
+  error <- F
+  message <- NA
+
+  # Request error
+  if (resp$status_code != 200)
+  {
+    error <- T
+    body <- httr::content(resp)
+    message <- purrr::pluck(body,"error","message",.default = NA)
+  }
+
+  if (!is.na(message)){
+    print(message)
+  }
+
+  result <- list(
+    error = error,
+    data = destfile
+  )
+
+  return (invisible(result))
+}
 
 #' Delete epigraf data
 #'
