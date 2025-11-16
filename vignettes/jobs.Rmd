@@ -35,13 +35,13 @@ that contains two download files
 
 job <- api_job_create(
   endpoint = "articles/export", 
-  params = list(projects=20,pipeline=471,id=2508), 
+  params = list(projects=20, pipeline=471, id=2508), 
   database = "epi_playground",
   payload = list(config=list(options=list(sort_signatures=0)))
 )
 
-downloads <- job$data[[1]]$downloads
-downloads <- map_dfr(downloads, ~ as_tibble(.x))
+
+downloads <- job$downloads
 
 api_download(downloads$url[1], filename = downloads$name[1])
 api_download(downloads$url[2], filename = downloads$name[2])

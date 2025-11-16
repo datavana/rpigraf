@@ -240,10 +240,6 @@ api_job_execute <- function(job_id) {
     }
 
     # Output
-    if (error) {
-      stop(paste0("Could not execute job: ", message))
-    }
-
     if (!is.na(message)) {
       print(message)
     }
@@ -259,12 +255,25 @@ api_job_execute <- function(job_id) {
     solved <- dplyr::distinct(solved)
   }
 
+  # Extract downloads
+  downloads <- lapply(result, \(x) purrr::map_dfr(x$downloads, ~ as_tibble(.x)))
+  result <- lapply(result, \(x) {x$downloads <- NULL;x })
+
+  if (length(downloads) > 0) {
+    downloads <- do.call(rbind, downloads)
+    downloads <- dplyr::distinct(downloads)
+  }
+
   result <- list(
     polling = polling,
     error = error,
+    message = message,
     data = result,
-    solved = solved
+    solved = solved,
+    downloads = downloads
   )
+
+  class(result) <- c("epi_job", setdiff(class(result), "epi_job"))
 
   return (invisible(result))
 }
@@ -438,6 +447,8 @@ api_download <- function(endpoint, params=c(), filename=NULL, filepath=NULL, ove
 
   if (!is.na(message)){
     print(message)
+  } else {
+    print(paste0("Downloaded file to ", destfile))
   }
 
   result <- list(
