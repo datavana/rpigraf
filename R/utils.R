@@ -78,7 +78,27 @@ add_missing_columns <- function(df, cols, default = NA) {
   df
 }
 
+#' Shift selected columns to the front
+#'
+#' @param df A data frame.
+#' @param cols A vector of column names
+#' @return A dataframe starting with the selected cols if they are present
+move_cols_to_front <- function(df, cols) {
+  existing_cols <- intersect(cols, colnames(df))
+  other_cols <- setdiff(colnames(df), existing_cols)
+  df[, c(existing_cols, other_cols), drop = FALSE]
+}
 
+#' Shift selected columns to the end
+#'
+#' @param df A data frame.
+#' @param cols A vector of column names
+#' @return A dataframe ending with the selected cols if they are present
+move_cols_to_end <- function(df, cols) {
+  existing_cols <- intersect(cols, colnames(df))
+  other_cols <- setdiff(colnames(df), existing_cols)
+  df[, c(other_cols, existing_cols), drop = FALSE]
+}
 
 #' Parse JSON columns
 #'

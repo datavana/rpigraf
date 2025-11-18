@@ -1,8 +1,8 @@
 ---
-title: "Manage Epigraf databases"
+title: "Manage Epigraf databases using the API"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{databases}
+  %\VignetteIndexEntry{api_manage}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -27,7 +27,7 @@ api_setup("http://127.0.0.1", "devel", T)
 
 
 
-```{r}
+```{r eval=FALSE}
 
 # Create a database
 api_post("databanks/add", payload=list("name"="dio","category"="DIO"))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetch.R
 \name{api_fetch}
 \alias{api_fetch}
-\title{Fetch entity data such as articles, projects or properties}
+\title{Fetch entity data such as articles, projects or properties from the API}
 \usage{
 api_fetch(table, params = c(), db = NA, maxpages = 1)
 }

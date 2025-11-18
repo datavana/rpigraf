@@ -1,8 +1,8 @@
 ---
-title: "Import data into Epigraf"
+title: "Import data into Epigraf using the API"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{import}
+  %\VignetteIndexEntry{api_patch}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

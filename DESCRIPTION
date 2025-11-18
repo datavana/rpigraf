@@ -25,7 +25,9 @@ Imports:
     stringr,
     progressr,
     jsonlite,
-    httr
+    httr,
+    DBI,
+    RMariaDB
 Depends:
   R (>= 4.2)
 Suggests: 

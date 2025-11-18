@@ -23,8 +23,8 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
 
     if (!missing(property.cols)) {
       props <- epi_extract_long(df, "properties")
-      if (nrow(props) > 0) {
-        items <- dplyr::left_join(items, props, by = c("items.property" = "properties.id"))
+      if ((nrow(props) > 0) && (nrow(items) > 0)) {
+        items <- dplyr::left_join(items,props, by = c("items.property" = "properties.id"))
       }
     }
 
@@ -39,6 +39,7 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
     cases <- cases[,c(cols, extract.cols, "id", "type", "norm_iri")]
   }
 
+  cases <-move_cols_to_end(cases, c("id", "type", "norm_iri"))
   cases
 }
 
@@ -59,6 +60,8 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   }
 
   props <- add_missing_columns(props, "parent_id", NA_character_)
+  props$id <- as.character(props$id)
+  props$parent_id <- as.character(props$parent_id)
   props <- props[, unique(c("lemma","type","norm_iri", "level","lft","rght","id","parent_id", cols)), drop = FALSE]
   props <- dplyr::arrange(props, !!rlang::sym("lft"))
   props <- tree_add_path(props, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("lemma"))

@@ -1,8 +1,8 @@
 ---
-title: "Handle batch processing and export pipelines"
+title: "Handle batch processing and export pipelines using the API"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{jobs}
+  %\VignetteIndexEntry{api_jobs}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

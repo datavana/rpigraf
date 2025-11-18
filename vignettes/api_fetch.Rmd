@@ -1,8 +1,8 @@
 ---
-title: "Fetch data from Epigraf"
+title: "Fetch data from Epigraf using the API"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{export}
+  %\VignetteIndexEntry{api_fetch}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 )
 
 library(tidyverse)
-library(httr)
 library(rpigraf)
 
 api_setup("http://localhost", "devel")
