@@ -74,7 +74,6 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 
 }
 
-
 #' Adds left and right values to the dataframe
 #'
 #' Left and right values are used to store hierarchical data
@@ -85,72 +84,72 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 #' @return Dataframe with lft and rght values
 #' @export
 #' @importFrom rlang .data
+#' @importFrom rlang .env
 tree_add_mptt <- function(data) {
+
   # Progress
-  .maxlevel = max(data$tree_level)
-  .minlevel = min(data$tree_level)
-  p <- progressr::progressor(steps = (.maxlevel-.minlevel+1) * 2)
+  maxlevel = max(data$tree_level)
+  minlevel = min(data$tree_level)
+  p <- progressr::progressor(steps = (maxlevel - minlevel + 1) * 2)
 
   # Add descendants
   data$tree_descendants = 0
-  for (.level in c(.maxlevel : .minlevel)) {
-    p(message=paste0("Level ",.level))
+  for (level in c(maxlevel : minlevel)) {
+    p(message=paste0("Level ",level))
 
-    descendants <- data |>
-      dplyr::filter(.data$tree_level == .level)  |>
-      dplyr::mutate(tree_descendants = .data$tree_descendants + 1) |>
-      dplyr::mutate(tree_id = .data$tree_parent) |>
-      dplyr::group_by(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_id")))) |>
-      dplyr::summarise(tree_tmp_descendants = sum(.data$tree_descendants),.groups="keep") |>
-      dplyr::ungroup(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_id"))))
+    descendants <- data %>%
+      filter(tree_level == .env$level)  %>%
+      mutate(tree_descendants = tree_descendants + 1) %>%
+      group_by(tree_thread, tree_id=tree_parent) %>%
+      summarise(tree_tmp_descendants = sum(tree_descendants),.groups="keep") %>%
+      ungroup(tree_thread, tree_id)
 
-    data <-  data |>
-      dplyr::left_join(descendants, by=c("tree_thread", "tree_id")) |>
-      tidyr::replace_na(list(tree_tmp_descendants=0)) |>
-      dplyr::mutate(tree_descendants = .data$tree_descendants + .data$tree_tmp_descendants) |>
-      dplyr::select(-tidyselect::all_of("tree_tmp_descendants"))
-
+    data <-  data %>%
+      left_join(descendants, by=c("tree_thread", "tree_id")) %>%
+      replace_na(list(tree_tmp_descendants=0)) %>%
+      mutate(tree_descendants = tree_descendants + tree_tmp_descendants) %>%
+      select(-tree_tmp_descendants)
   }
 
-
   # Add left
-  data <- data |>
-    dplyr::group_by(dplyr::across(tidyselect::all_of(c("tree_thread", "tree_parent")))) |>
-    dplyr::arrange(.data$tree_order) |>
-    dplyr::mutate(tree_no = dplyr::row_number()) |>
-    dplyr::mutate(tree_rgt = 1 + cumsum(.data$tree_descendants)*2 + (2 * (.data$tree_no-1)) + 1) |>
-    dplyr::mutate(tree_lft = .data$tree_rgt - 2*.data$tree_descendants - 1) |>
-    dplyr::ungroup(dplyr::across(tidyselect::all_of(c("tree_thread","tree_parent")))) |>
-    dplyr::select(-tidyselect::all_of("tree_descendants"))
+  data <- data %>%
+    group_by(tree_thread, tree_parent) %>%
+    arrange(tree_order) %>%
+    mutate(tree_no = row_number()) %>%
+    mutate(tree_rgt = 1 + cumsum(tree_descendants) * 2 + (2 * (tree_no - 1)) + 1) %>%
+    mutate(tree_lft = tree_rgt - 2 * tree_descendants - 1) %>%
+    ungroup(tree_thread,tree_parent) %>%
+    select(-tree_descendants)
 
 
   # Bubble from parents to children
-  .level <- .minlevel
-  parents <- data |>
-    dplyr::filter(.data$tree_level == .minlevel)
+  level <- minlevel
+  parents <- data %>%
+    filter(tree_level == minlevel)
 
   while(nrow(parents) > 0) {
 
-    p(message=paste0("Level ",.level))
-    .level <- .level + 1
+    p(message=paste0("Level ",level))
+    level <- level + 1
 
-    data <- data |>
-      dplyr::mutate(tree_parent_lft = .data$tree_lft) |>
-      dplyr::left_join(dplyr::select(parents, tidyselect::all_of(c("tree_thread","tree_id","tree_parent_lft"))),
-                by=c("tree_thread","tree_parent"="tree_id"))|>
-      tidyr::replace_na(list(tree_parent_lft = 0)) |>
-      dplyr::mutate(tree_lft = .data$tree_lft + .data$tree_parent_lft) |>
-      dplyr::mutate(tree_rgt = .data$tree_rgt + .data$tree_parent_lft) |>
-      dplyr::select(-tidyselect::all_of("tree_parent_lft"))
+    data <- data %>%
+      left_join(
+        select(parents, tree_thread, tree_id, tree_parent_lft = tree_lft),
+        by=c("tree_thread","tree_parent"="tree_id")
+      )%>%
+      replace_na(list(tree_parent_lft = 0)) %>%
+      mutate(tree_lft = tree_lft + tree_parent_lft) %>%
+      mutate(tree_rgt = tree_rgt + tree_parent_lft) %>%
+      select(-tree_parent_lft)
 
-    parents <- data |>
-      dplyr::semi_join(parents,by=c("tree_thread","tree_parent"="tree_id"))
+    parents <- data %>%
+      semi_join(parents, by=c("tree_thread", "tree_parent" = "tree_id"))
 
   }
 
-  data <- data |>
-    dplyr::arrange(.data$tree_thread, .data$tree_lft) |>
-    dplyr::select(tidyselect::starts_with("tree_"), tidyselect::everything())
+  data <- data %>%
+    arrange(tree_thread, tree_lft) %>%
+    select(starts_with("tree_"), everything())
 
   return(data)
 }
