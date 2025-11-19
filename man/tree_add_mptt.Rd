@@ -7,7 +7,8 @@
 tree_add_mptt(data)
 }
 \arguments{
-\item{data}{Dataframe with the columns tree_id, tree_parent, tree_thread, tree_level, tree_order}
+\item{data}{Dataframe with the columns tree_id, tree_parent,
+tree_thread, tree_level, tree_order}
 }
 \value{
 Dataframe with lft and rght values
