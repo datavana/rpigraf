@@ -33,7 +33,7 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
   .level <- 1
   children <- data |>
     dplyr::inner_join(dplyr::select(roots, tidyselect::all_of(c(".tree_id","tree_thread"))),by=c(".tree_parent"=".tree_id")) |>
-    dplyr::mutate(tree_level=.level) |>
+    dplyr::mutate(tree_level= .env$.level) |>
 
     dplyr::group_by(dplyr::across(tidyselect::all_of(".tree_parent"))) |>
     dplyr::arrange(!!col_sort) |>
@@ -50,15 +50,13 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 
     children.next <- data |>
       dplyr::anti_join(children,by=c(".tree_id")) |>
-      dplyr::mutate(.parent_order = .data$tree_order) |>
-      dplyr::inner_join(dplyr::select(children, tidyselect::all_of(c("tree_thread",".tree_id",".parent_order"))),by=c(".tree_parent"=".tree_id")) |>
-      dplyr::mutate(tree_level=.level) |>
+      dplyr::inner_join(dplyr::select(children, tidyselect::all_of(c("tree_thread",".tree_id"))), by=c(".tree_parent"=".tree_id")) |>
+      dplyr::mutate(tree_level = .env$.level) |>
 
       dplyr::group_by(dplyr::across(tidyselect::all_of(".tree_parent"))) |>
       dplyr::arrange(!!col_sort) |>
       dplyr::mutate(tree_order= dplyr::row_number()) |>
-      dplyr::ungroup() |>
-      dplyr::select(-tidyselect::all_of(".parent_order"))
+      dplyr::ungroup()
 
     children <- dplyr::bind_rows(children,children.next)
 
