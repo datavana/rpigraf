@@ -20,6 +20,8 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
     col_sort <- col_id
   }
 
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+
   # Prepare columns
   data <- dplyr::mutate(data,.tree_id=!!col_id)
   data <- dplyr::mutate(data,.tree_parent=!!col_parent)
@@ -40,13 +42,17 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
     dplyr::mutate(tree_order=dplyr::row_number()) |>
     dplyr::ungroup()
 
-  cat("Level ",.level,". ",sep="")
-  cat(nrow(children)," nodes addes.\n\n",sep="")
+  if (verbose) {
+    cat("Level ",.level,". ",sep="")
+    cat(nrow(children)," nodes addes.\n\n",sep="")
+  }
 
   while (TRUE) {
 
     .level <- .level + 1
-    cat("Level ",.level,". ",sep="")
+    if (verbose) {
+      cat("Level ",.level,". ",sep="")
+    }
 
     children.next <- data |>
       dplyr::anti_join(children,by=c(".tree_id")) |>
@@ -60,7 +66,9 @@ tree_add_level <- function(data, col_id, col_parent, col_sort=NULL) {
 
     children <- dplyr::bind_rows(children,children.next)
 
-    cat(nrow(children.next)," nodes addes.\n\n",sep="")
+    if (verbose) {
+      cat(nrow(children.next)," nodes addes.\n",sep="")
+    }
 
     if (!nrow(children.next))
       break
