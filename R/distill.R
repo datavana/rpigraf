@@ -59,7 +59,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
     return (props)
   }
 
-  props <- add_missing_columns(props, "parent_id", NA_character_)
+  props <- add_missing_columns(props, c("parent_id", "articles_id"), NA_character_)
   props$id <- as.character(props$id)
   props$parent_id <- as.character(props$parent_id)
   props <- props[, unique(c("lemma","type","norm_iri", "level","lft","rght","id","parent_id", cols)), drop = FALSE]
@@ -68,7 +68,9 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   props <- drop_empty_columns(props)
 
   props <- dplyr::select(props, tidyselect::any_of(unique(c("tree_path", "id", cols,"type", "norm_iri"))))
-  colnames(props)[1] <- "path"
+  if (colnames(props)[1] == "tree_path") {
+    colnames(props)[1] <- "path"
+  }
 
   if (annos) {
 
@@ -87,7 +89,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
 
 
     # links
-    links <- distill_links(df, type, c("segment"))
+    links <- distill_links(df, NULL, c("segment"), level = NULL)
 
     if (nrow(links) > 0) {
       links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
@@ -120,6 +122,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
 #' @export
 distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), article.cols = c()) {
   items <- epi_extract_long(df, "items", type, prefix = FALSE)
+  items$id <- as.character(items$id)
 
   extract.cols <- cols
   if (length(property.cols) > 0) {
@@ -129,6 +132,8 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
   if (!missing(property.cols)) {
     props <- epi_extract_long(df, "properties")
     if (nrow(props) > 0) {
+      items$property <- as.character(items$property)
+      props$properties.id <- as.character(props$properties.id)
       items <- dplyr::left_join(items, props, by = c("property" = "properties.id"))
     }
   }
@@ -152,30 +157,51 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #' @param df A RAM data frame
 #' @param type The type of items with annotations
 #' @param article.cols A list of article columns to join
-#' @param level The aggregation level, beginning with 0
+#' @param level The aggregation level, beginning with 0. Set to NULL to get the lowest level.
 #' @importFrom rlang .data
 #' @return A tibble containing annotations
 distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
 
   codes <- distill_properties(df, cols = c("parent_id","level","norm_iri"))
   cases <- distill_articles(df, cols = article.cols)
+  cases$id <- as.character(cases$id)
 
   cases <- dplyr::select(cases, -tidyselect::any_of(c("type","norm_iri")))
   codes <- add_missing_columns(codes, "parent_id", NA_character_)
+  codes$id <- as.character(codes$id)
 
   ancestors <- codes |>
     dplyr::select(tidyselect::all_of(c("id", "parent_id"))) |>
     tree_stack_ancestors("id", "parent_id",  "anc_id") |>
     dplyr::distinct()
 
-  codes_level <- codes[codes$level == level,]
+
+  if (is.null(level)) {
+    codes_level <- codes
+    level <- max(codes$level)
+  } else {
+
+    codes_level <- codes[codes$level == level,]
+  }
 
   links <- epi_extract_long(df, "links", prefix = FALSE)
+  if ("root_tab" %in% colnames(links)) {
+    links <- links[links$root_tab == "articles",]
+  }
+
+  if ("from_tab" %in% colnames(links)) {
+    links <- links[links$from_tab == "items",]
+  }
+  if ("to_tab" %in% colnames(links)) {
+    links <- links[links$to_tab == "properties",]
+  }
+
   if (nrow(links) == 0) {
     return (tibble::tibble())
   }
 
   codings <- links |>
+    dplyr::mutate(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id")), as.character)) |>
     dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id")))) |>
     dplyr::left_join(ancestors,by=c("to_id"="id"), relationship = "many-to-many")
 
@@ -195,18 +221,23 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
     dplyr::mutate(dplyr::across(tidyselect::starts_with("level_"), ~ stringr::str_replace_all(., "&x2f;","&")))
 
 
-  segments <- epi_extract_long(df, "items", NULL, prefix = FALSE)
-  segments$items_id <-  segments$id
-  segments <- add_missing_columns(segments, "norm_iri", NA)
+  # Segments in items
+  segments <- epi_extract_long(df, "items", type, prefix = FALSE)
+  segments$items_id <- segments$id
+  segments <- add_missing_columns(segments, c("items_id", "sections_id", "articles_id", "content", "norm_iri"), NA_character_)
 
   segments <- segments |>
     dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "content", "norm_iri"))) |>
+    dplyr::mutate(dplyr::across(tidyselect::everything(), as.character)) |>
     dplyr::inner_join(codings, by=c("items_id" = "from_id"), relationship="many-to-many")  |>
     dplyr::mutate(item_iri = .data$norm_iri) |>
     dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "from_tagid", "content", "item_iri"))) |>
     dplyr::rowwise() |>
     dplyr::mutate(segment = paste0(extract_segment(.data$content, .data$from_tagid), collapse=";"))
 
+  # TODO: Segments in footnotes
+
+  # Join
   codings <- dplyr::left_join(codings, segments, by=c("from_id" = "items_id", "from_tagid"))
   codings$items_id <- codings$from_id
 

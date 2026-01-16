@@ -1,0 +1,35 @@
+---
+title: "trees"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", 
+  message = FALSE, 
+  warning = FALSE
+)
+
+library(tidyverse)
+library(rpigraf)
+
+db_setup()
+```
+
+
+```{r}
+props <- db_fetch("properties", params = list("propertytype" = "materials"), db= "epi_mv")
+props <- filter(props, is.na(related_id))
+```
+
+
+```{r}
+
+props <- select(props, tree_order = lemma, tree_id = id, tree_parent = parent_id, tree_level = level, tree_thread = type)
+
+props |> 
+  tree_add_mptt()
+
+```
+
