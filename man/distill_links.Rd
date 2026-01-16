@@ -19,7 +19,7 @@ distill_links(
 
 \item{article.cols}{A list of article columns to join}
 
-\item{level}{The aggregation level, beginning with 0}
+\item{level}{The aggregation level, beginning with 0. Set to NULL to get the lowest level.}
 }
 \value{
 A tibble containing annotations
