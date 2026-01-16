@@ -9,7 +9,7 @@
 #' @param apitoken Access token. If NULL, you will be asked to enter the token.
 #' @param verbose Show debug messages and the built URLs
 #' @export
-api_setup <- function(apiserver, apitoken=NULL, verbose=F) {
+api_setup <- function(apiserver, apitoken = NULL, verbose = FALSE) {
   if (missing(apitoken)) {
     apitoken <- readline(prompt="Please, enter your access token:")
   }
