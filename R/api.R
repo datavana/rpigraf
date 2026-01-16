@@ -202,7 +202,7 @@ api_job_execute <- function(job_id) {
     }
 
     # Continue
-    else if (!is.na(purrr::pluck(body,"job","nexturl",.default = NA)))
+    else if (!is.na(purrr::pluck(body,"job","nextUrl",.default = NA)))
     {
       polling <- T
       error <- F
