@@ -4,7 +4,7 @@
 \alias{distill_properties}
 \title{Get the property tree (including annotations)}
 \usage{
-distill_properties(df, type = NULL, cols = c(), annos = FALSE)
+distill_properties(df, type = NULL, cols = c(), annos = FALSE, levelup = NULL)
 }
 \arguments{
 \item{df}{A RAM data frame.}
@@ -14,6 +14,9 @@ distill_properties(df, type = NULL, cols = c(), annos = FALSE)
 \item{cols}{The property columns.}
 
 \item{annos}{Whether to distill annotations.}
+
+\item{levelup}{If set to a number, the tree will be simplified by replacing the path value
+on lower levels with the ancestor path from the given level.}
 }
 \value{
 A tibble containing the properties tree.

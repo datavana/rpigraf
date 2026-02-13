@@ -67,9 +67,11 @@ distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =
 #' @param type The property type.
 #' @param cols The property columns.
 #' @param annos Whether to distill annotations.
+#' @param levelup If set to a number, the tree will be simplified by replacing the path value
+#'                on lower levels with the ancestor path from the given level.
 #' @return A tibble containing the properties tree.
 #' @export
-distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
+distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, levelup = NULL) {
   props <- epi_extract_long(df, "properties", type, FALSE)
 
   if (nrow(props) == 0) {
@@ -85,7 +87,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   props <- tree_add_path(props, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("lemma"))
   props <- drop_empty_columns(props)
 
-  props <- dplyr::select(props, tidyselect::any_of(unique(c("tree_path", "id", cols,"type", "norm_iri"))))
+  props <- dplyr::select(props, tidyselect::any_of(unique(c("tree_path", "id", "parent_id", cols,"type", "norm_iri"))))
   if (colnames(props)[1] == "tree_path") {
     colnames(props)[1] <- "path"
   }
@@ -119,6 +121,16 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
     }
 
     props <- dplyr::bind_rows(props, links, items)
+  }
+
+  if (!is.null(levelup)) {
+    props <- tree_add_ancestor(props, level = levelup, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("path"))
+    #props$id <- props$ancestor_id
+    props$path <- props$ancestor_path
+
+    props$ancestor_id <- NULL
+    props$ancestor_path <- NULL
+
   }
 
   props

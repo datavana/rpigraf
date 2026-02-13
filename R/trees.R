@@ -247,6 +247,29 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
 }
 
 
+#' Add ancestor id and path from a specific level to all children
+#'
+#'@param data A data frame with properties
+#'@param level The target level
+#'@param col_id The column holding property ids
+#'@param col_parent_id The column holding property parent ids
+#'@param col_path The column holding a value (mostly a path or lemma) that will be added in addition to the id.
+#'@return Data frame with the two columns ancestor_id and ancestor_path added
+tree_add_ancestor <- function(data, level = 0, col_id, col_parent_id, col_path) {
+
+  col_id <- rlang::enquo(col_id)
+  col_parent_id <- rlang::enquo(col_parent_id)
+  col_path <- rlang::enquo(col_path)
+
+  target <- tree_add_level(data, !!col_id, !!col_parent_id)
+  target <- target[target$tree_level == level, c(rlang::as_name(col_id), rlang::as_name(col_path))]
+  colnames(target) <- c("ancestor_id", "ancestor_path")
+
+  data %>%
+    tree_stack_ancestors(!!col_id, !!col_parent_id, "ancestor_id") %>%
+    dplyr::inner_join(target, by = "ancestor_id")
+}
+
 #' Get all distinct nodes in an edge list
 #'
 #' @param edges An edge list
