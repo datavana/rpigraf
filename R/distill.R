@@ -95,7 +95,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
   if (annos) {
 
     # Items
-    items <- distill_items(df, NULL, cols = c("articles_id","sections_id", "property"))
+    items <- distill_items(df, NULL, cols = c("articles_id", "sections_id", "property"))
 
     items$items_id <- items$id
     items <- items[, c("property","articles_id", "sections_id", "items_id")]

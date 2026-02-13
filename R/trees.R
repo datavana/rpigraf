@@ -261,12 +261,14 @@ tree_add_ancestor <- function(data, level = 0, col_id, col_parent_id, col_path) 
   col_parent_id <- rlang::enquo(col_parent_id)
   col_path <- rlang::enquo(col_path)
 
-  target <- tree_add_level(data, !!col_id, !!col_parent_id)
+  target <- dplyr::distinct(data, !!col_id, !!col_parent_id, !!col_path)
+  target <- tree_add_level(target, !!col_id, !!col_parent_id)
   target <- target[target$tree_level == level, c(rlang::as_name(col_id), rlang::as_name(col_path))]
   colnames(target) <- c("ancestor_id", "ancestor_path")
 
   data %>%
-    tree_stack_ancestors(!!col_id, !!col_parent_id, "ancestor_id") %>%
+    dplyr::distinct() |>
+    tree_stack_ancestors(!!col_id, !!col_parent_id, "ancestor_id") |>
     dplyr::inner_join(target, by = "ancestor_id")
 }
 
