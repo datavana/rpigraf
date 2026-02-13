@@ -109,7 +109,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
 
 
     # links
-    links <- distill_links(df, NULL, c("segment"), level = NULL)
+    links <- distill_links(df, properties.type = type, cols = c("segment"), level = NULL)
 
     if (nrow(links) > 0) {
       links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
@@ -125,12 +125,6 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
 
   if (!is.null(levelup)) {
     props <- tree_add_ancestor(props, level = levelup, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("path"))
-    #props$id <- props$ancestor_id
-    props$path <- props$ancestor_path
-
-    props$ancestor_id <- NULL
-    props$ancestor_path <- NULL
-
   }
 
   props
@@ -185,14 +179,15 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #' @keywords internal
 #'
 #' @param df A RAM data frame.
-#' @param type The type of items with annotations.
+#' @param items.type The type of items with annotations.
+#' @param properties.type Keep only links that target the given property type.
 #' @param article.cols A list of article columns to join.
 #' @param level The aggregation level, beginning with 0. Set to NULL to get the lowest level.
 #' @importFrom rlang .data
 #' @return A tibble containing annotations.
-distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
+distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
 
-  codes <- distill_properties(df, cols = c("parent_id","level","norm_iri"))
+  codes <- distill_properties(df, properties.type, cols = c("parent_id","level","norm_iri"))
   cases <- distill_articles(df, cols = article.cols)
   cases$id <- as.character(cases$id)
 
@@ -240,6 +235,7 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
     dplyr::distinct(dplyr::across(tidyselect::all_of(c("root_id", "from_id", "from_tagid", "to_id", "path")))) |>
     dplyr::left_join(cases, by=c("root_id"="id")) |>
 
+    # TODO: Use tree_add_ancestor or the ancestors cols
     tidyr::separate_wider_delim(
       .data$path, delim=" / ",
       names = c(paste0("level_",0:level)),
@@ -252,7 +248,7 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
 
 
   # Segments in items
-  segments <- epi_extract_long(df, "items", type, prefix = FALSE)
+  segments <- epi_extract_long(df, "items", items.type, prefix = FALSE)
   segments$items_id <- segments$id
   segments <- add_missing_columns(segments, c("items_id", "sections_id", "articles_id", "content", "norm_iri"), NA_character_)
 

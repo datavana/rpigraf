@@ -222,8 +222,13 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
     dplyr::mutate(tree_path =!!col_lemma) |>
     dplyr::select(!!col_id, tidyselect::all_of(c("tree_path")))
 
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+
   while(nrow(current) > 0) {
-    print(paste0(nrow(current), " nodes processed."))
+
+    if (verbose) {
+      cat(nrow(current)," nodes processed. \n",sep = "")
+    }
 
     # Update path of current batch
     data <- data |>
@@ -347,10 +352,14 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
     dplyr::filter(!is.na(.data$.tree_parent)) |>
     dplyr::mutate(.tree_main=.data$.tree_parent)
 
+  verbose <- Sys.getenv("epi_verbose") == "TRUE"
+
   while (TRUE) {
 
     if (nrow(data_parents) > 0) {
-      cat("Adding ", nrow(data_parents)," rows. \n",sep = "")
+      if (verbose) {
+        cat(nrow(data_parents)," rows added. \n",sep = "")
+      }
       data_stacked <- dplyr::bind_rows(data_stacked, data_parents)
     } else {
       break

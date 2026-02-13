@@ -6,7 +6,8 @@
 \usage{
 distill_links(
   df,
-  type = NULL,
+  items.type = NULL,
+  properties.type = NULL,
   cols = c("path", "segment"),
   article.cols = c(),
   level = 0
@@ -15,7 +16,9 @@ distill_links(
 \arguments{
 \item{df}{A RAM data frame.}
 
-\item{type}{The type of items with annotations.}
+\item{items.type}{The type of items with annotations.}
+
+\item{properties.type}{Keep only links that target the given property type.}
 
 \item{article.cols}{A list of article columns to join.}
 
