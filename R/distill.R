@@ -1,16 +1,25 @@
-#' Get articles (including selected item values)
+#' Get articles
 #'
-#' @param df A RAM data frame
-#' @param cols Article columns
-#' @param item.type Item types to join
-#' @param item.cols Cols to join from the items
-#' @param property.cols Cols to join from the property
-#' @return A tibble with articles
+#' Section, item, and property data can be joined.
+#'
+#' @param df A RAM data frame.
+#' @param cols Article columns.
+#' @param section.type Section types to join.
+#'        The result contains only items within sections of the given type.
+#'        Set to NULL to get all items.
+#' @param section.cols Cols to join from the sections.
+#' @param item.type Item types to join.
+#' @param item.cols Cols to join from the items.
+#' @param property.cols Cols to join from the property.
+#' @return A tibble with articles.
 #' @export
-distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), property.cols = c()) {
+distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =c(), item.type = NULL, item.cols = c(), property.cols = c()) {
   cases <- df[df$table == "articles", unique(c("id","type","norm_iri", cols))]
 
   extract.cols <- c()
+  if (length(section.cols) > 0) {
+    extract.cols <- c(extract.cols, c(paste0("sections.",section.cols)))
+  }
   if (length(item.cols) > 0) {
     extract.cols <- c(extract.cols, c(paste0("items.",item.cols)))
   }
@@ -28,6 +37,15 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
       }
     }
 
+    if (!missing(section.cols)) {
+
+      sections <- epi_extract_long(df, "sections", section.type)
+
+      if ((nrow(sections) > 0) && (nrow(items) > 0)) {
+        items <- dplyr::inner_join(sections, items, by = c("sections.id" = "items.sections_id"))
+      }
+    }
+
     items <- items[, c("items.articles_id", extract.cols),drop = FALSE]
     #colnames(items) <- c("items.articles_id","value")
 
@@ -39,17 +57,17 @@ distill_articles <- function(df, cols = c(), item.type = NULL, item.cols = c(), 
     cases <- cases[,c(cols, extract.cols, "id", "type", "norm_iri")]
   }
 
-  cases <-move_cols_to_end(cases, c("id", "type", "norm_iri"))
+  cases <- move_cols_to_end(cases, c("id", "type", "norm_iri"))
   cases
 }
 
 #' Get the property tree (including annotations)
 #'
-#' @param df A RAM data frame
-#' @param type The property type
-#' @param cols The property columns
-#' @param annos Whether to distill annotations
-#' @return A tibble containing the properties tree
+#' @param df A RAM data frame.
+#' @param type The property type.
+#' @param cols The property columns.
+#' @param annos Whether to distill annotations.
+#' @return A tibble containing the properties tree.
 #' @export
 distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
   props <- epi_extract_long(df, "properties", type, FALSE)
@@ -112,12 +130,12 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE) {
 #'
 #' @keywords internal
 #'
-#' @param df A RAM data frame
-#' @param type Item types to filter
-#' @param cols Cols returned from the items
-#' @param property.cols Property columns joined to the items
+#' @param df A RAM data frame.
+#' @param type Item types to filter.
+#' @param cols Cols returned from the items.
+#' @param property.cols Property columns joined to the items.
 #' @param article.cols Article columns joined to the items. Not implemented yet.
-#' @return A tibble with items
+#' @return A tibble with items.
 #' @importFrom rlang .data
 #' @export
 distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), article.cols = c()) {
@@ -154,12 +172,12 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #'
 #' @keywords internal
 #'
-#' @param df A RAM data frame
-#' @param type The type of items with annotations
-#' @param article.cols A list of article columns to join
+#' @param df A RAM data frame.
+#' @param type The type of items with annotations.
+#' @param article.cols A list of article columns to join.
 #' @param level The aggregation level, beginning with 0. Set to NULL to get the lowest level.
 #' @importFrom rlang .data
-#' @return A tibble containing annotations
+#' @return A tibble containing annotations.
 distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
 
   codes <- distill_properties(df, cols = c("parent_id","level","norm_iri"))
@@ -250,9 +268,9 @@ distill_links <- function(df,  type = NULL, cols = c("path", "segment"), article
 #'
 #' @keywords internal
 #'
-#' @param xml Character value containing XML text
-#' @param tagid Character value containing the tag ID
-#' @return A character value containing only the text of elements with the tag ID
+#' @param xml Character value containing XML text.
+#' @param tagid Character value containing the tag ID.
+#' @return A character value containing only the text of elements with the tag ID.
 extract_segment <- function(xml, tagid) {
   xml <- paste0("<root>",xml,"</root>")
   xml_doc <- xml2::read_xml(xml)
@@ -265,8 +283,8 @@ extract_segment <- function(xml, tagid) {
 #'
 #' @keywords internal
 #'
-#' @param xml The XML as character value
-#' @return A character value where all text contained in tags was stripped
+#' @param xml The XML as character value.
+#' @return A character value where all text contained in tags was stripped.
 extract_untagged <- function(xml) {
   xml <- paste0("<root>",xml,"</root>")
   xml = stringr::str_replace_all(xml, "&", "&#038;")

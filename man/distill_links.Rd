@@ -13,16 +13,16 @@ distill_links(
 )
 }
 \arguments{
-\item{df}{A RAM data frame}
+\item{df}{A RAM data frame.}
 
-\item{type}{The type of items with annotations}
+\item{type}{The type of items with annotations.}
 
-\item{article.cols}{A list of article columns to join}
+\item{article.cols}{A list of article columns to join.}
 
 \item{level}{The aggregation level, beginning with 0. Set to NULL to get the lowest level.}
 }
 \value{
-A tibble containing annotations
+A tibble containing annotations.
 }
 \description{
 Get annotations for the articles

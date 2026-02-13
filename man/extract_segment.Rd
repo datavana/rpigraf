@@ -7,12 +7,12 @@
 extract_segment(xml, tagid)
 }
 \arguments{
-\item{xml}{Character value containing XML text}
+\item{xml}{Character value containing XML text.}
 
-\item{tagid}{Character value containing the tag ID}
+\item{tagid}{Character value containing the tag ID.}
 }
 \value{
-A character value containing only the text of elements with the tag ID
+A character value containing only the text of elements with the tag ID.
 }
 \description{
 Function to extract segments based on ID attribute

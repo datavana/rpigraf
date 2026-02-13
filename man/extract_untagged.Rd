@@ -7,10 +7,10 @@
 extract_untagged(xml)
 }
 \arguments{
-\item{xml}{The XML as character value}
+\item{xml}{The XML as character value.}
 }
 \value{
-A character value where all text contained in tags was stripped
+A character value where all text contained in tags was stripped.
 }
 \description{
 Function to extract non-tagged text

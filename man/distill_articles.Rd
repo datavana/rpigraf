@@ -2,30 +2,38 @@
 % Please edit documentation in R/distill.R
 \name{distill_articles}
 \alias{distill_articles}
-\title{Get articles (including selected item values)}
+\title{Get articles}
 \usage{
 distill_articles(
   df,
   cols = c(),
+  section.type = NULL,
+  section.cols = c(),
   item.type = NULL,
   item.cols = c(),
   property.cols = c()
 )
 }
 \arguments{
-\item{df}{A RAM data frame}
+\item{df}{A RAM data frame.}
 
-\item{cols}{Article columns}
+\item{cols}{Article columns.}
 
-\item{item.type}{Item types to join}
+\item{section.type}{Section types to join.
+The result contains only items within sections of the given type.
+Set to NULL to get all items.}
 
-\item{item.cols}{Cols to join from the items}
+\item{section.cols}{Cols to join from the sections.}
 
-\item{property.cols}{Cols to join from the property}
+\item{item.type}{Item types to join.}
+
+\item{item.cols}{Cols to join from the items.}
+
+\item{property.cols}{Cols to join from the property.}
 }
 \value{
-A tibble with articles
+A tibble with articles.
 }
 \description{
-Get articles (including selected item values)
+Section, item, and property data can be joined.
 }

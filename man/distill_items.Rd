@@ -13,18 +13,18 @@ distill_items(
 )
 }
 \arguments{
-\item{df}{A RAM data frame}
+\item{df}{A RAM data frame.}
 
-\item{type}{Item types to filter}
+\item{type}{Item types to filter.}
 
-\item{cols}{Cols returned from the items}
+\item{cols}{Cols returned from the items.}
 
-\item{property.cols}{Property columns joined to the items}
+\item{property.cols}{Property columns joined to the items.}
 
 \item{article.cols}{Article columns joined to the items. Not implemented yet.}
 }
 \value{
-A tibble with items
+A tibble with items.
 }
 \description{
 TODO: Implement article.cols parameter.
