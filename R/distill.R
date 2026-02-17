@@ -124,6 +124,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
   }
 
   if (!is.null(levelup)) {
+    props <- add_missing_columns(props, c("parent_id", "path"), NA_character_)
     props <- tree_add_ancestor(props, level = levelup, !!rlang::sym("id"), !!rlang::sym("parent_id"), !!rlang::sym("path"))
   }
 
