@@ -43,11 +43,20 @@ epi_create_iri <- function(table, type, fragment, split=F) {
 #' @return A clean IRI fragment
 #' @export
 epi_clean_irifragment <- function(fragment) {
+
+  replacements <- c(
+    "\u00E4" = "ae",
+    "\u00F6" = "oe",
+    "\u00FC" = "ue",
+    "\u00DF" = "ss",
+    "\u00E5" = "aa",
+    "\u00E6" = "ae",
+    "\u00F8" = "oe"
+  )
+
   fragment |>
     stringr::str_to_lower() |>
-    stringr::str_replace_all(
-      c("\u00E4"="ae","\u00F6"="oe","\u00FC"="ue","\u00DF"="ss")
-    ) |>
+    stringr::str_replace_all(replacements) |>
     stringr::str_replace_all("[^a-z0-9_~-]","-") |>
     stringr::str_replace_all("-+","-") |>
     stringr::str_remove("^-") |>
