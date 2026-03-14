@@ -32,24 +32,15 @@ If you get an "Error 401" when using the following methods, check your permissio
 
 ## Reading data 
 
-To warm up, get some article data.
+To warm up, get some article data. 
+Data is always delivered in chunks, each chunk is called a page. 
+The `limit` parameter tells the API to return 5 articles per page.
+The `maxpages` parameter defines that fetching is stopped after one page.
+Fetching is always stopped if there is no more data.
 
 ```
-# Get an article list
-articles <- fetch_table("articles", columns = c("name"), db = "epi_movies", maxpages = 2)
-
-# Get a single article by its ID
-article <- fetch_entity("articles-1", db = "epi_movies")
-
-```
-
-You can combine fetching an article list, and the full entity data in the next step:
-
-```
-# Get all data for the first articles page (limit each page to 5 articles)
 articles <- api_fetch("articles", params=c(limit=5), db="epi_movies", maxpages=1)
 ```
-
 
 The data come in the Relation-Article-Model-format. 
 That means all pieces of an article are returned as rows.  
