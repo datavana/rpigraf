@@ -150,16 +150,31 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
   items$id <- as.character(items$id)
 
   extract.cols <- cols
-  if (length(property.cols) > 0) {
-    extract.cols <- c(extract.cols, c(paste0("properties.",property.cols)))
-  }
 
-  if (!missing(property.cols)) {
+  if (!missing(property.cols) && ("property" %in% colnames(items))) {
     props <- epi_extract_long(df, "properties")
     if (nrow(props) > 0) {
       items$property <- as.character(items$property)
       props$properties.id <- as.character(props$properties.id)
       items <- dplyr::left_join(items, props, by = c("property" = "properties.id"))
+      if (length(property.cols) > 0) {
+        extract.cols <- c(extract.cols, c(paste0("properties.",property.cols)))
+      }
+
+    }
+
+  }
+
+  if (!missing(article.cols)) {
+    arts <- epi_extract_long(df, "articles")
+    if (nrow(arts) > 0) {
+      items$articles_id <- as.character(items$articles_id)
+      arts$articles.id <- as.character(arts$articles.id)
+      items <- dplyr::left_join(items, arts, by = c("articles_id" = "articles.id"))
+
+      if (length(article.cols) > 0) {
+        extract.cols <- c(extract.cols, c(paste0("articles.",article.cols)))
+      }
     }
   }
 

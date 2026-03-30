@@ -7,16 +7,16 @@
 epi_extract_long(df, table, type = NULL, prefix = TRUE)
 }
 \arguments{
-\item{df}{A RAM data frame}
+\item{df}{A RAM data frame.}
 
-\item{table}{The table name}
+\item{table}{The table name.}
 
-\item{type}{Filter by type}
+\item{type}{Filter by types: a single character value or a vector of multiple values.}
 
-\item{prefix}{Whether to prefix the columns with the table name}
+\item{prefix}{Whether to prefix the columns with the table name.}
 }
 \value{
-A data frame with the filtered rows and columns prefixed with the table name
+A data frame with the filtered rows and columns prefixed with the table name.
 }
 \description{
 Get RAM rows by table name

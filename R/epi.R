@@ -154,16 +154,16 @@ epi_iri_parent <- function(id = NULL, prefix = "~") {
 
 #' Get RAM rows by table name
 #'
-#' @param df A RAM data frame
-#' @param table The table name
-#' @param type Filter by type
-#' @param prefix Whether to prefix the columns with the table name
-#' @return A data frame with the filtered rows and columns prefixed with the table name
+#' @param df A RAM data frame.
+#' @param table The table name.
+#' @param type Filter by types: a single character value or a vector of multiple values.
+#' @param prefix Whether to prefix the columns with the table name.
+#' @return A data frame with the filtered rows and columns prefixed with the table name.
 #' @importFrom rlang .data
 epi_extract_long <- function(df, table, type = NULL, prefix = TRUE) {
   df <- df[df$table == table,]
   if (!is.null(type)) {
-    df <- df[df$type == type,]
+    df <- df[df$type %in% type,]
   }
   df <- drop_empty_columns(df)
   df <- dplyr::distinct(df)
