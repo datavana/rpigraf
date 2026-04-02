@@ -1,5 +1,5 @@
 ---
-title: "Import data into Epigraf using the API"
+title: "Import data using the API"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{api_patch}
@@ -149,66 +149,3 @@ The RAM data frame is ready to be patched (i.e. uploaded) into Epigraf.
 ```{r eval=FALSE}
 api_patch(epi, db = "epi_movies")
 ```
-
-
-## Download data
-
-### Fetch data
-
-First, you fetch RAM data from Epigraf. 
-The data contains rows from the RAM tables (projects, articles, sections etc.) below each other.
-
-```{r eval=FALSE}
-epi <- api_fetch("articles", db = "epi_movies")
-```
-
-### Map RAM data to articles and their annotations
-
-Second, you reduce the RAM data to more convenient data frames with selected columns.
-This process is called distilling. You can start from two perspectives:
-
-- Get articles and join nested content `distill_articles()`.
-- Get properties and, optionally, join annotations from the articles by `distill_properties()`.
-
-#### Get article content
-
-The distill_articles() method pulls article data from the RAM data and joins sections, items and optionally properties used in the items.
-In its most simple form, you get a list of articles with selected columns:
-
-```{r eval=FALSE}
-distill_articles(epi, c("signature", "name"))
-```
-
-To join item data, provide an item type and the columns to extract from the items.
-This results in a data frame with a row for each item (and the respective article columns).
-
-```{r eval=FALSE}
-distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
-
-```
-
-If properties are used in the items, add a parameter that defines which fields to extract from the joined property:
-
-```{r eval=FALSE}
-distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
-
-```
-
-#### Get properties and annotations
-
-To get the properties used in the articles (i.e. properties that were fetched and, thus, are contained in the RAM data),
-you use `distill_properties()` with RAM data in the first parameter and a property type in the second parameter.
-For hierarchical properties, the function will return the property tree.
-
-```{r eval=FALSE}
-distill_properties(epi, "categories")
-```
-
-To get the annotations, including coded segments, set the `annos`-parameter to TRUE:
-
-```{r eval=FALSE}
-distill_properties(epi, "categories", annos = TRUE)
-distill_properties(epi, "annotations", annos = TRUE)
-
-```
-

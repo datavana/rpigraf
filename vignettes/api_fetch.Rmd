@@ -1,5 +1,5 @@
 ---
-title: "Fetch data from Epigraf using the API"
+title: "Fetch data using the API"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{api_fetch}

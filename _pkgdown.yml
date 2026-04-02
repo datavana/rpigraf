@@ -1,0 +1,31 @@
+url: https://datavana.github.io/rpigraf/
+template:
+  bootstrap: 5
+  light-switch: true
+navbar:
+  structure:
+    left:
+    - home
+    - fetch
+    - patch
+    - more
+    - reference
+    right:
+    - search
+    - github
+  components:
+    fetch:
+      text: "Fetch data"
+      href: "articles/api_fetch.html"
+    patch:
+      text: "Patch data"
+      href: "articles/api_patch.html"
+    more:
+      text: "More"
+      menu:
+        - text: "Export and batch processing"
+          href: "articles/api_batch.html"
+        - text: "Manage databases"
+          href: "articles/api_manage.html"
+        - text: "Direct database access"
+          href: "articles/db_fetch.html"

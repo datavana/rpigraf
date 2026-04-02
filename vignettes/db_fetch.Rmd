@@ -1,5 +1,5 @@
 ---
-title: "Fetch data from Epigraf using direct database access"
+title: "Fetch data using direct database access"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{db_fetch}

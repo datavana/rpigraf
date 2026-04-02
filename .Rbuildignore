@@ -5,3 +5,5 @@
 ^pkgdown$
 ^LICENSE\.md$
 ^.idea
+^doc$
+^Meta$

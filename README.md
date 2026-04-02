@@ -58,7 +58,7 @@ Or extract the list of articles:
 distill_articles(articles, c("signature", "name"))
 ```
 
-See the import vignette for further examples, e.g. on how to get annotations.
+See `vignette("api_fetch", package="rpigraf")` for further examples, e.g. on how to get annotations.
 
 ## Writing data
 
@@ -81,5 +81,5 @@ The property types, "categories" in the example,  need to be configured in Epigr
 Thereafter, you can see the new properties in Epigraf by clicking the categories menu button. 
 
 For more complex data, use the craft functions to map your data frames to the RAM.
-See the import vignette for further examnples.
+See `vignette("api_patch", package="rpigraf")` for further examnples.
 
