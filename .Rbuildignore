@@ -7,3 +7,4 @@
 ^.idea
 ^doc$
 ^Meta$
+^\.github$
