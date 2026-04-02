@@ -1,0 +1,13 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  api_batch: api_batch.html
+  api_fetch: api_fetch.html
+  api_manage: api_manage.html
+  api_patch: api_patch.html
+  db_fetch: db_fetch.html
+last_built: 2026-04-02T05:33Z
+urls:
+  reference: https://datavana.github.io/rpigraf/reference
+  article: https://datavana.github.io/rpigraf/articles

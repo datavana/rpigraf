@@ -1,0 +1,132 @@
+# Import data using the API
+
+Epigraf expects data in a format called Relational Article Model (RAM).
+
+RAM is a model to represent documents in tables. It consists of the
+following tables:
+
+- Projects: Each article is assigned to a project.
+- Articles: Each article contains sections.
+- Sections: Each section contains items.
+- Items: Items contain the article content (text, references to
+  categories etc.)
+- Links: Annotations are stored as links between tags in item content
+  and categories.
+- Footnotes: Textual annotations are stored in the footnotes table.
+- Categories: Vocabularies used for tagging items and annotating text.
+
+Each row in a table is identified by an IRI (Internationalized Resource
+Identifier), which is a worldwide unique identificator. Understanding
+the IRI concept of the RAM model is crucial for data transfers:
+
+- Add new data: When you import data with IRIs not yet present in the
+  database, new rows will be added.
+- Update data: When you import data with IRIs that already exist, the
+  existing rows will be updated.
+
+Each IRI used in the RAM consists of the server name
+(e.g. “<https://epigraf.uni-muenster.de/>”) and an IRI path
+(e.g. “properties/genres/western”).
+
+The IRI path is stored in the database tables and consists of three
+elements: - Table: One of projects, articles, sections, items, or
+categories. - Type: The row type. For example, you can distinguish
+different category systems by their type. - Fragment: An alphanumeric
+value used to identify the row in the table.
+
+## Upload data
+
+We use the following simple table as an example:
+
+``` r
+
+ds <- tribble(
+  ~case, ~title,       ~genre,     ~text,
+  "011", "Westworld",   "Western", "In a futuristic amusement park, androids populate themed worlds like the Wild West.",
+  "012", "Yellowstone", "Western", "Ranch owner John Dutton battles to protect his family's massive Montana cattle ranch.",
+  "013", "Once Upon",   "Western", "A mysterious harmonica-playing stranger teams up with a bandit."
+)
+```
+
+### Map data to the RAM
+
+The craft methods guide your through the mapping process. You start with
+crafting a project and then, step by step, add articles, sections, items
+and further content. The dataset remembers your crafted data in an
+attribute. You won’t see the RAM data if you simply inspect the data
+frame. Only intermediary columns storing the last project, article or
+section IDs are visible. To get the RAM data, you call
+[`ram_compile()`](https://datavana.github.io/rpigraf/reference/ram_compile.md)
+in the last step.
+
+Each craft function supports two parameters: - `fill` is used to provide
+fixed values not contained in the source dataset. For example, the
+project name or row types are usually provided by filling in data. -
+`cols` contains a named list that maps columns from the source data
+frame to the RAM columns in the respective table. For example, you can
+map the text column to the content field in the items table.
+
+Let’s go through it step by step.
+
+**Project:** As we don’t have data about the project in the source data
+frame, we fill in some values. The project is named “Movies”. The type
+defaults to “default” (optional, if you omit it, “default” is used
+anyways)
+
+``` r
+ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "name" = "Movies", "signature"="movies"))
+```
+
+**Article data** is taken from the columns: case, title. The type
+defaults to “default”.
+
+``` r
+ds <- craft_articles(ds, fill = c("type" = "default"), cols=c("fragment" = "case", "signature" = "case", "name" = "title"))
+```
+
+The **text section** is named “Abstract”. We omit the fragment, it is
+automatically added and derived from the article fragment. You need a
+fragment, if you have multiple sections of the same type.
+
+``` r
+ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
+```
+
+The **text item** data is taken from the columns: text. The type is
+fixed to “text”. We omit the fragment, it is automatically added and
+derived from the section fragment. You need a fragment, if you have
+multiple items of the same type.
+
+``` r
+ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
+```
+
+The **categories section** is named “Genres”. The type is fixed to
+“categories”.
+
+``` r
+ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
+```
+
+The **categories property** content is taken from the genre column. By
+crafting a property, the column .property is added to the data frame.
+The categories item content is taken from this column.
+
+``` r
+ds <- craft_properties(ds, fill = c("type" = "categories"), cols = c("fragment"="genre", "lemma" = "genre"))
+ds <- craft_items(ds, fill = c("type" = "categories"), cols = c("properties_id" = ".property"))
+```
+
+### Patch data into the database
+
+Finally, compile the stacked ram rows to get the RAM data frame.
+
+``` r
+epi <- ram_compile(ds)
+```
+
+The RAM data frame is ready to be patched (i.e. uploaded) into Epigraf.
+
+``` r
+api_patch(epi, db = "epi_movies")
+```

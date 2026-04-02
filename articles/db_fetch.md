@@ -1,0 +1,51 @@
+# Fetch data using direct database access
+
+Epigraf stores data in the Relational Articles Model (RAM). For an
+introduction, see the api_fetch vignette. You can use the same distill
+functions for data fetched using the API or using direct database
+access.
+
+### Fetch data
+
+First, you fetch RAM data from the Epigraf database. The result contains
+rows from the RAM tables (projects, articles, sections etc.) below each
+other.
+
+``` r
+
+epi <- db_fetch("articles", db = "epi_movies")
+```
+
+### Map RAM data to articles and their annotations
+
+Second, let rpigraf distill flat data frames for you.
+
+You can start from two perspectives:
+
+- Get articles and, optionally, join nested content with
+  [`distill_articles()`](https://datavana.github.io/rpigraf/reference/distill_articles.md).
+- Get properties and, optionally, join annotations from the articles
+  with
+  [`distill_properties()`](https://datavana.github.io/rpigraf/reference/distill_properties.md).
+
+See the api_fetch vignette for an explanation of the examples.
+
+#### The article perspective
+
+``` r
+distill_articles(epi, c("signature", "name"))
+
+distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
+
+distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
+```
+
+#### The properties perspective
+
+``` r
+distill_properties(epi, "categories")
+
+distill_properties(epi, "categories", annos = TRUE)
+
+distill_properties(epi, "annotations", annos = TRUE)
+```
