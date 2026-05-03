@@ -2,17 +2,17 @@
 % Please edit documentation in R/api.R
 \name{api_setup}
 \alias{api_setup}
-\title{Save API connection settings to environment variables.}
+\title{Save API connection settings to environment variables}
 \usage{
 api_setup(apiserver, apitoken = NULL, verbose = FALSE)
 }
 \arguments{
-\item{apiserver}{URL of the Epigraf server (including https-protocol)}
+\item{apiserver}{URL of the Epigraf server (including https-protocol).}
 
 \item{apitoken}{Access token. If NULL, you will be asked to enter the token.}
 
-\item{verbose}{Show debug messages and the built URLs}
+\item{verbose}{Show debug messages and the built URLs.}
 }
 \description{
-Save API connection settings to environment variables.
+Save API connection settings to environment variables
 }

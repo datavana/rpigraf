@@ -13,9 +13,11 @@ db_table(table, cond = list(), deleted = FALSE, compact = FALSE, db)
 
 \item{deleted}{Deleted records are skipped by default. Set to TRUE, to get all records.}
 
-\item{compact}{Whether rename types columns to \code{type} and to add a \code{table} and a \code{database} column.}
+\item{compact}{Whether to rename type columns to \code{type} and to add a \code{table} and a \code{database} column.}
 
-\item{db}{A connection object (object) or the database name (character).}
+\item{db}{A connection object (object) or the database name (character).
+Provide a character vector of dababase names to get and row bind data from multiple databases.
+In this case, the compact parameter is automatically set to TRUE. Thus, database name column is added.}
 }
 \description{
 Get data from a database table

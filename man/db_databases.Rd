@@ -4,10 +4,10 @@
 \alias{db_databases}
 \title{Get list of all databases}
 \usage{
-db_databases(epi = FALSE)
+db_databases(epi = TRUE)
 }
 \arguments{
-\item{epi}{Only keep databases with the epi-prefix.}
+\item{epi}{Only keep databases with the epi-prefix and join meta data from the main database}
 }
 \description{
 Get list of all databases

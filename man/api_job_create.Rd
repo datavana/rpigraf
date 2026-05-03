@@ -7,13 +7,13 @@
 api_job_create(endpoint, params, database, payload = NULL)
 }
 \arguments{
-\item{endpoint}{The endpoint supporting job creation}
+\item{endpoint}{The endpoint supporting job creation.}
 
-\item{params}{Query parameters}
+\item{params}{Query parameters.}
 
-\item{database}{The selected database}
+\item{database}{The selected database.}
 
-\item{payload}{The data posted to the job endpoint}
+\item{payload}{The data posted to the job endpoint.}
 }
 \value{
 void

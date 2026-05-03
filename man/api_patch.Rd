@@ -8,27 +8,27 @@ api_patch(data, db, table = NA, type = NA, wide = T)
 }
 \arguments{
 \item{data}{A dataframe with the column \code{id}.
-Additional columns such as norm_data will be written to the record.
-The id must either be a a valid IRI path (e.g. properties/objecttypes/xxx)
-or an id prefixed by the table name (e.g. properties-12).
+Additional columns such as \code{norm_data} will be written to the entity.
+The id must either be a valid IRI path (e.g. \code{properties/objecttypes/xxx})
+or an id prefixed by the table name (e.g. \code{properties-12}).
 Patching properties with prefixed ids requires a \code{type} column
 that contains the property type.
-Column names with table names as prefixes will be extracted, if wide is set to TRUE (default).}
+If wide is set to TRUE (default), column names prefixed with table names are extracted.}
 
-\item{db}{The database name}
+\item{db}{The database name.}
 
-\item{table}{Optional: Check that the data only contains rows for a specific table}
+\item{table}{Optional: Check that the data only contains rows for a specific table.}
 
-\item{type}{Optional: Check that the data only contains rows with a specific type}
+\item{type}{Optional: Check that the data only contains rows with a specific type.}
 
 \item{wide}{Convert wide format to long format.
 If TRUE, column names prefixed with "properties", "items", "sections", "articles"
-and "projects" followed by a dot (e.g. "properties.id",
-"properties.lemma") will be extracted and patched as additional records.}
+and "projects" followed by a dot (e.g. \code{properties.id}, \code{properties.lemma})
+will be extracted and patched as additional entities.}
 }
 \description{
-Update records in the database using the API.
-Existing records will be updated, missing records will be created.
+Update entities in the database using the API.
+Existing entities will be updated, missing entities will be created.
 The function supports uploading all data related to articles:
 articles, sections, items, links, footnotes, properties, projects, users, types.
 The IRI path in the ID column of the dataframe must contain the specific table name.

@@ -7,11 +7,11 @@
 api_buildurl(endpoint, query = NA, database = NA, extension = "json")
 }
 \arguments{
-\item{endpoint}{The endpoint, e.g. articles/import}
+\item{endpoint}{The endpoint, e.g. articles/import.}
 
-\item{query}{Query parameters for the endpoint}
+\item{query}{Query parameters for the endpoint.}
 
-\item{database}{The database name}
+\item{database}{The database name.}
 
 \item{extension}{Extension added to the URL path, defaults to json.}
 }

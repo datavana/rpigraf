@@ -7,11 +7,12 @@
 db_fetch(table, params = list(), db = NA)
 }
 \arguments{
-\item{table}{The table name (e.g. "articles")}
+\item{table}{The table name (e.g. "articles").}
 
-\item{params}{A named list of query conditions}
+\item{params}{A named list of query conditions, passed to db_table.}
 
-\item{db}{The database name}
+\item{db}{The database name (character).
+Provide a character vector of dababase names to get and row bind data from multiple databases.}
 }
 \description{
 Returns all data belonging to all entities matched by the params.

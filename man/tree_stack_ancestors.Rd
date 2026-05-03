@@ -4,7 +4,7 @@
 \alias{tree_stack_ancestors}
 \title{For each node, add each ancestor's id}
 \usage{
-tree_stack_ancestors(data, col_id, col_parent, col_stack)
+tree_stack_ancestors(data, col_id, col_parent, col_stack, ancestor.cols = c())
 }
 \arguments{
 \item{data}{All nodes}
@@ -14,6 +14,8 @@ tree_stack_ancestors(data, col_id, col_parent, col_stack)
 \item{col_parent}{The column holding IDs of the parent nodes}
 
 \item{col_stack}{The column that will hold the ancestors IDs}
+
+\item{ancestor.cols}{Additional columns to join from the ancestors, a character vector.}
 }
 \description{
 In the result, nodes will be duplicated for all their ancestors.

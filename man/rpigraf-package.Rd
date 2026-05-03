@@ -12,6 +12,7 @@ Provides functions for interacting with Epigraf.
 Useful links:
 \itemize{
   \item \url{https://github.com/datavana/rpigraf}
+  \item \url{https://datavana.github.io/rpigraf/}
 }
 
 }
