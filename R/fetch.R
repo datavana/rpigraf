@@ -20,21 +20,34 @@ api_fetch <- function(table, params=c(), db = NA, maxpages=1) {
   df <- dplyr::distinct(df)
   df <- move_cols_to_front(df, c("database", "table", "type", "id"))
   df
-
-  # fetch_table(table, "id", params, db, maxpages) |>
-  #  fetch_entity()
 }
 
 #' Fetch entity data such as articles, projects or properties using direct database access
 #'
 #' Returns all data belonging to all entities matched by the params.
 #'
-#' @param table The table name (e.g. "articles")
-#' @param params A named list of query conditions
-#' @param db The database name
+#' @param table The table name (e.g. "articles").
+#' @param params A named list of query conditions, passed to db_table.
+#' @param db The database name (character).
+#'           Provide a character vector of dababase names to get and row bind data from multiple databases.
 #' @importFrom rlang .data
 #' @export
 db_fetch <- function(table, params=list(), db = NA) {
+
+  # If db is a character vector of length > 1, iterate and bind
+  if (is.character(db) && length(db) > 1) {
+    return(
+      dplyr::bind_rows(
+        lapply(db, function(singledb) {
+          db_fetch(
+            table = table,
+            params = params,
+            db = singledb
+          )
+        })
+      )
+    )
+  }
 
   df_root <- db_table(table, params, db = db, compact = TRUE)
   df <- df_root
@@ -78,6 +91,34 @@ db_fetch <- function(table, params=list(), db = NA) {
     df <- bind_rows_char(list(df, df_projects))
 
   }
+
+  # Add property ancestors
+  while (TRUE) {
+
+    props_all <- df[df$table=="properties",]
+    props_all <- dplyr::distinct(props_all)
+
+    if(nrow(props_all) == 0) {
+      break
+    }
+
+    props_missing <- props_all[!is.na(props_all$parent_id),, drop = FALSE]
+    props_missing <- dplyr::anti_join(props_missing, props_all, by = c("parent_id" = "id"))
+    props_missing <- unique(props_missing$parent_id)
+
+    if (length(props_missing) == 0) {
+      break
+    }
+
+    props_missing <- db_table("properties", list("id" = props_missing), db = db, compact = TRUE)
+
+    if (nrow(props_missing) == 0) {
+      break
+    }
+
+    df <- bind_rows_char(list(df, props_missing))
+  }
+
 
   df <- drop_empty_columns(df)
   df <- move_cols_to_front(df, c("database", "table", "type", "id"))

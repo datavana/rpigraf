@@ -57,17 +57,21 @@ db_name <- function(con) {
 
 #' Get list of all databases
 #'
-#' @param epi Only keep databases with the epi-prefix.
+#' @param epi Only keep databases with the epi-prefix and join meta data from the main database
 #' @importFrom rlang .data
 #' @export
-db_databases <- function(epi = FALSE) {
+db_databases <- function(epi = TRUE) {
   con <- db_connect()
   dbs = DBI::dbGetQuery(con,"SHOW DATABASES;")
   DBI::dbDisconnect(con)
   rm(con)
 
+  colnames(dbs) <- c("name")
+
   if (epi) {
-    dbs <- dplyr::filter(dbs, stringr::str_starts(.data$Database,"epi_"))
+    dbs <- dplyr::filter(dbs, stringr::str_starts(.data$name,"epi_"))
+    meta <- db_table("databanks", db= DB_MAIN, deleted=T)
+    dbs <- full_join(dbs, meta, by="name")
   }
 
   return(dbs)
@@ -112,23 +116,43 @@ db_condition <- function(table = NA, field, value) {
 #' @param table Table name.
 #' @param cond Either a named list of conditions, or a full condition as character, or a character vector of conditions, e.g. `c("id = 10")`.
 #' @param deleted Deleted records are skipped by default. Set to TRUE, to get all records.
-#' @param compact Whether rename types columns to `type` and to add a `table` and a `database` column.
+#' @param compact Whether to rename type columns to `type` and to add a `table` and a `database` column.
 #' @param db A connection object (object) or the database name (character).
+#'           Provide a character vector of dababase names to get and row bind data from multiple databases.
+#'           In this case, the compact parameter is automatically set to TRUE. Thus, database name column is added.
 #' @export
 db_table <- function(table, cond=list(), deleted = FALSE, compact = FALSE, db){
-  # Check if db is character --> open db connection
-  if (is.character(db)){
+
+  # If db is a character vector of length > 1, iterate and bind
+  if (is.character(db) && length(db) > 1) {
+    return(
+      dplyr::bind_rows(
+        lapply(db, function(singledb) {
+          db_table(
+            table = table,
+            cond = cond,
+            deleted = deleted,
+            compact = TRUE,
+            db = singledb
+          )
+        })
+      )
+    )
+  }
+
+  # Single DB handling
+  if (is.character(db)) {
     con <- db_connect(db)
-  }  else {
+  } else {
     con <- db
   }
 
   # Construct SQL
   sql <- paste0("SELECT * FROM ", table)
 
-  # Add deleted = 0 to the conditions vector
-  if (deleted == FALSE) {
-    cond = c("deleted = 0", cond)
+  # Add deleted condition
+  if (!deleted) {
+    cond <- c("deleted = 0", cond)
   }
 
   # Convert condition list to character vector
@@ -152,8 +176,7 @@ db_table <- function(table, cond=list(), deleted = FALSE, compact = FALSE, db){
     sql <- paste0(sql, " WHERE ", cond)
   }
 
-
-  # get table
+  # Get data
   df <- dplyr::as_tibble(
     DBI::dbGetQuery(con, sql)
   )
@@ -164,6 +187,7 @@ db_table <- function(table, cond=list(), deleted = FALSE, compact = FALSE, db){
     .funs = function(x) { return(`Encoding<-`(x, "UTF-8")) }
   )
 
+  # Close connection
   if (is.character(db)){
     DBI::dbDisconnect(con)
   }

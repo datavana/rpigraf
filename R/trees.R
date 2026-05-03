@@ -331,9 +331,10 @@ tree_bind_ancestors <- function(.data, .tree, id, parent_id) {
 #' @param col_id The column holding IDs of the nodes
 #' @param col_parent The column holding IDs of the parent nodes
 #' @param col_stack The column that will hold the ancestors IDs
+#' @param ancestor.cols Additional columns to join from the ancestors, a character vector.
 #' @importFrom rlang :=
 #' @export
-tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
+tree_stack_ancestors <- function(data, col_id, col_parent, col_stack, ancestor.cols = c()) {
 
   col_id <- rlang::ensym(col_id)
   col_parent <- rlang::ensym(col_parent)
@@ -345,7 +346,7 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
   data <- dplyr::mutate(data,.tree_parent = !!col_parent)
 
   # Put items themselves on the stack
-  data_stacked <- dplyr::mutate(data,.tree_main=.data$.tree_id)
+  data_stacked <- dplyr::mutate(data, .tree_main=.data$.tree_id)
 
   # Init parents (.tree_main is the parent id)
   data_parents <- data |>
@@ -376,6 +377,14 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack) {
       # TODO: Does this work?
       dplyr::select(-tidyselect::all_of(".tree_main.y"))
 
+  }
+
+  if (length(ancestor.cols) > 0) {
+    ancestor.cols <- c(".tree_id", ancestor.cols)
+    ancestors <- data[ , ancestor.cols, drop=FALSE]
+    ancestors <- ancestors[!duplicated(ancestors$.tree_id), ]
+    colnames(ancestors) <- paste0("ancestor.", colnames(ancestors))
+    data_stacked <- dplyr::left_join(data_stacked, ancestors, by = c(".tree_main" = "ancestor..tree_id"))
   }
 
   # Remove columns and return data

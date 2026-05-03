@@ -95,7 +95,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
   if (annos) {
 
     # Items
-    items <- distill_items(df, NULL, cols = c("articles_id", "sections_id", "property"))
+    items <- distill_items(df, NULL, cols = c("property"))
 
     items$items_id <- items$id
     items <- items[, c("property","articles_id", "sections_id", "items_id")]
@@ -160,9 +160,7 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
       if (length(property.cols) > 0) {
         extract.cols <- c(extract.cols, c(paste0("properties.",property.cols)))
       }
-
     }
-
   }
 
   if (!missing(article.cols)) {
@@ -181,7 +179,8 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
   #cases <- dplyr::full_join(cases, items, by=c("id" = "items.articles_id"))
   #items <- items[, c(cols),drop = FALSE]
   items <- add_missing_columns(items, "norm_iri")
-  items <- items[, c(extract.cols, "id", "type", "norm_iri"), drop = FALSE]
+  extract.cols <- unique(c(extract.cols, "id", "type", "norm_iri", "articles_id", "sections_id"))
+  items <- items[, extract.cols, drop = FALSE]
 
   items <- items |>
     dplyr::mutate(dplyr::across(tidyselect::any_of(extract.cols), ~ stringr::str_replace_all(.x,"&amp;","&"))) |>

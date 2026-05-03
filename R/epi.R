@@ -214,13 +214,11 @@ epi_extract_wide <- function(data, cols_prefix, cols_keep=c()) {
 #' Convert wide to long format
 #'
 #' @param data A dataframe with the column id containing a valid IRI path.
-#'             Additional columns may contain nested data in the following form:
-#'
-#'             Column names prefixed with "properties", "items", "sections",
+#'             If additional column names are prefixed with "properties", "items", "sections",
 #'              "articles" and "projects" followed by a dot (e.g. "properties.id",
-#'             "properties.lemma") will be extracted and stacked to the dataframe.
+#'             "properties.lemma"), they will be extracted and stacked to the dataframe.
 #'
-#' @return A dataframe with all input rows and the nested records stacked.
+#' @return A dataframe with all input rows and the nested entities stacked.
 #' @importFrom rlang .data
 #' @export
 epi_wide_to_long <- function(data) {

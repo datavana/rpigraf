@@ -3,11 +3,11 @@
 #
 
 
-#' Save API connection settings to environment variables.
+#' Save API connection settings to environment variables
 #'
-#' @param apiserver URL of the Epigraf server (including https-protocol)
+#' @param apiserver URL of the Epigraf server (including https-protocol).
 #' @param apitoken Access token. If NULL, you will be asked to enter the token.
-#' @param verbose Show debug messages and the built URLs
+#' @param verbose Show debug messages and the built URLs.
 #' @export
 api_setup <- function(apiserver, apitoken = NULL, verbose = FALSE) {
   if (missing(apitoken)) {
@@ -32,9 +32,9 @@ api_silent <- function(silent = F) {
 
 #' Build base URL
 #'
-#' @param endpoint The endpoint, e.g. articles/import
-#' @param query Query parameters for the endpoint
-#' @param database The database name
+#' @param endpoint The endpoint, e.g. articles/import.
+#' @param query Query parameters for the endpoint.
+#' @param database The database name.
 #' @param extension Extension added to the URL path, defaults to json.
 #' @export
 api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
@@ -50,7 +50,7 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
 
   # Add query parameters
   if (!all(is.na(query)))  {
-    url$query = merge_lists(list(url$query,as.list(query)))
+    url$query <-  merge_lists(list(url$query,as.list(query)))
   }
 
   if (!stringr::str_starts(endpoint,"/")) {
@@ -64,10 +64,10 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
   endpoint_extension <- get_extension(endpoint)
 
   if (endpoint_extension != "") {
-    extension = ""
+    extension <-  ""
   }
   else if (is.na(extension)) {
-    extension = ""
+    extension <-  ""
   }
   else if (!is.na(extension) && !stringr::str_starts(extension,"\\.")) {
     extension <-  paste0(".", extension)
@@ -92,10 +92,10 @@ api_buildurl <- function(endpoint, query=NA, database=NA, extension="json") {
 
 #' Create and execute a job
 #'
-#' @param endpoint The endpoint supporting job creation
-#' @param params Query parameters
-#' @param database The selected database
-#' @param payload The data posted to the job endpoint
+#' @param endpoint The endpoint supporting job creation.
+#' @param params Query parameters.
+#' @param database The selected database.
+#' @param payload The data posted to the job endpoint.
 #' @return void
 #' @export
 api_job_create <- function(endpoint, params, database, payload=NULL) {
@@ -174,6 +174,9 @@ api_job_execute <- function(job_id) {
 
   result = list()
   polling <- T
+  error <- NA
+  message <- NA
+
   while (polling) {
 
     if (verbose) {
@@ -474,26 +477,26 @@ api_delete <- function(endpoint, params=c(), payload=NULL, database = NA) {
 
 #' Patch data
 #'
-#' Update records in the database using the API.
-#' Existing records will be updated, missing records will be created.
+#' Update entities in the database using the API.
+#' Existing entities will be updated, missing entities will be created.
 #' The function supports uploading all data related to articles:
 #' articles, sections, items, links, footnotes, properties, projects, users, types.
 #' The IRI path in the ID column of the dataframe must contain the specific table name.
 #'
 #' @param data A dataframe with the column `id`.
-#'             Additional columns such as norm_data will be written to the record.
-#'             The id must either be a a valid IRI path (e.g. properties/objecttypes/xxx)
-#'             or an id prefixed by the table name (e.g. properties-12).
+#'             Additional columns such as `norm_data` will be written to the entity.
+#'             The id must either be a valid IRI path (e.g. `properties/objecttypes/xxx`)
+#'             or an id prefixed by the table name (e.g. `properties-12`).
 #'             Patching properties with prefixed ids requires a `type` column
 #'             that contains the property type.
-#'             Column names with table names as prefixes will be extracted, if wide is set to TRUE (default).
-#' @param db The database name
-#' @param table Optional: Check that the data only contains rows for a specific table
-#' @param type Optional: Check that the data only contains rows with a specific type
+#'             If wide is set to TRUE (default), column names prefixed with table names are extracted.
+#' @param db The database name.
+#' @param table Optional: Check that the data only contains rows for a specific table.
+#' @param type Optional: Check that the data only contains rows with a specific type.
 #' @param wide Convert wide format to long format.
 #'             If TRUE, column names prefixed with "properties", "items", "sections", "articles"
-#'             and "projects" followed by a dot (e.g. "properties.id",
-#'            "properties.lemma") will be extracted and patched as additional records.
+#'             and "projects" followed by a dot (e.g. `properties.id`, `properties.lemma`)
+#'             will be extracted and patched as additional entities.
 #' @export
 api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
@@ -503,8 +506,9 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   stopifnot(epi_is_iripath(data$id, table, type) | epi_is_id(data$id, table))
 
-  # IRI path
   data <- data |>
+
+    # Reorder
     dplyr::select(tidyselect::all_of("id"), tidyselect::everything()) |>
 
     # Remove complete empty columns
@@ -524,7 +528,7 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   print(paste0("Uploading ",nrow(data)," rows."))
 
-  api_job_create("articles/import", NA, db,list(data=data))
+  api_job_create("articles/import", NA, db, list(data=data))
 }
 
 #' Send request to epigraf
