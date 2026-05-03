@@ -12,12 +12,13 @@ db_fetch(table, params = list(), db = NA)
 
 - table:
 
-  The table name (e.g. "articles")
+  The table name (e.g. "articles").
 
 - params:
 
-  A named list of query conditions
+  A named list of query conditions, passed to db_table.
 
 - db:
 
-  The database name
+  The database name (character). Provide a character vector of dababase
+  names to get and row bind data from multiple databases.

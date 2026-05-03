@@ -10,7 +10,7 @@ example: a node on level 2 will be present two times,
 ## Usage
 
 ``` r
-tree_stack_ancestors(data, col_id, col_parent, col_stack)
+tree_stack_ancestors(data, col_id, col_parent, col_stack, ancestor.cols = c())
 ```
 
 ## Arguments
@@ -30,3 +30,7 @@ tree_stack_ancestors(data, col_id, col_parent, col_stack)
 - col_stack:
 
   The column that will hold the ancestors IDs
+
+- ancestor.cols:
+
+  Additional columns to join from the ancestors, a character vector.

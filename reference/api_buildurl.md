@@ -12,15 +12,15 @@ api_buildurl(endpoint, query = NA, database = NA, extension = "json")
 
 - endpoint:
 
-  The endpoint, e.g. articles/import
+  The endpoint, e.g. articles/import.
 
 - query:
 
-  Query parameters for the endpoint
+  Query parameters for the endpoint.
 
 - database:
 
-  The database name
+  The database name.
 
 - extension:
 

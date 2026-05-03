@@ -1,6 +1,6 @@
-# Save API connection settings to environment variables.
+# Save API connection settings to environment variables
 
-Save API connection settings to environment variables.
+Save API connection settings to environment variables
 
 ## Usage
 
@@ -12,7 +12,7 @@ api_setup(apiserver, apitoken = NULL, verbose = FALSE)
 
 - apiserver:
 
-  URL of the Epigraf server (including https-protocol)
+  URL of the Epigraf server (including https-protocol).
 
 - apitoken:
 
@@ -20,4 +20,4 @@ api_setup(apiserver, apitoken = NULL, verbose = FALSE)
 
 - verbose:
 
-  Show debug messages and the built URLs
+  Show debug messages and the built URLs.

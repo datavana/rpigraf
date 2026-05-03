@@ -12,19 +12,19 @@ api_job_create(endpoint, params, database, payload = NULL)
 
 - endpoint:
 
-  The endpoint supporting job creation
+  The endpoint supporting job creation.
 
 - params:
 
-  Query parameters
+  Query parameters.
 
 - database:
 
-  The selected database
+  The selected database.
 
 - payload:
 
-  The data posted to the job endpoint
+  The data posted to the job endpoint.
 
 ## Value
 

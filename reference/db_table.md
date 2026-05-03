@@ -26,9 +26,12 @@ db_table(table, cond = list(), deleted = FALSE, compact = FALSE, db)
 
 - compact:
 
-  Whether rename types columns to `type` and to add a `table` and a
+  Whether to rename type columns to `type` and to add a `table` and a
   `database` column.
 
 - db:
 
-  A connection object (object) or the database name (character).
+  A connection object (object) or the database name (character). Provide
+  a character vector of dababase names to get and row bind data from
+  multiple databases. In this case, the compact parameter is
+  automatically set to TRUE. Thus, database name column is added.

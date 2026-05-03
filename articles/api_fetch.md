@@ -42,6 +42,7 @@ First, you fetch RAM data from Epigraf. The data contains rows from the
 RAM tables (projects, articles, sections etc.) below each other.
 
 ``` r
+
 epi <- api_fetch("articles", db = "epi_movies")
 ```
 
@@ -64,6 +65,7 @@ joins sections, items and optionally properties used in the items. In
 its most simple form, you get a list of articles with selected columns:
 
 ``` r
+
 distill_articles(epi, c("signature", "name"))
 ```
 
@@ -72,6 +74,7 @@ the items. This results in a data frame with a row for each item (and
 the respective article columns).
 
 ``` r
+
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 ```
 
@@ -79,6 +82,7 @@ If properties are used in the items, add a parameter that defines which
 fields to extract from the joined property:
 
 ``` r
+
 distill_articles(epi, c("signature", "name"), item.type = "categories", property.cols = "lemma")
 ```
 
@@ -92,6 +96,7 @@ parameter. For hierarchical properties, the function will return the
 property tree.
 
 ``` r
+
 distill_properties(epi, "categories")
 ```
 
@@ -99,6 +104,7 @@ To get the annotations, including coded segments, set the
 `annos`-parameter to TRUE:
 
 ``` r
+
 distill_properties(epi, "categories", annos = TRUE)
 distill_properties(epi, "annotations", annos = TRUE)
 ```

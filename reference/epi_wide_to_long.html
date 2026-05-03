@@ -55,15 +55,14 @@
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>A dataframe with the column id containing a valid IRI path.
-Additional columns may contain nested data in the following form:</p>
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>        Column names prefixed with <span class="st">"properties"</span>, <span class="st">"items"</span>, <span class="st">"sections"</span>,</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>         <span class="st">"articles"</span> and <span class="st">"projects"</span> followed by a <span class="fu">dot</span> (e.g. <span class="st">"properties.id"</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>        <span class="st">"properties.lemma"</span>) will be extracted and stacked to the dataframe.</span></code></pre><p></p></div></dd>
+If additional column names are prefixed with "properties", "items", "sections",
+"articles" and "projects" followed by a dot (e.g. "properties.id",
+"properties.lemma"), they will be extracted and stacked to the dataframe.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A dataframe with all input rows and the nested records stacked.</p>
+    <p>A dataframe with all input rows and the nested entities stacked.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

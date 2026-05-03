@@ -2,6 +2,7 @@
 
 ``` r
 
+
 # Create a database
 api_post("databanks/add", payload=list("name"="dio","category"="DIO"))
 

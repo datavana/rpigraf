@@ -22,7 +22,7 @@
 - [`api_post()`](https://datavana.github.io/rpigraf/reference/api_post.md)
   : Post data to epigraf
 - [`api_setup()`](https://datavana.github.io/rpigraf/reference/api_setup.md)
-  : Save API connection settings to environment variables.
+  : Save API connection settings to environment variables
 - [`api_silent()`](https://datavana.github.io/rpigraf/reference/api_silent.md)
   : Set silent mode
 - [`api_table()`](https://datavana.github.io/rpigraf/reference/api_table.md)

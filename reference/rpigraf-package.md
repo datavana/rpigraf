@@ -8,6 +8,8 @@ Useful links:
 
 - <https://github.com/datavana/rpigraf>
 
+- <https://datavana.github.io/rpigraf/>
+
 ## Author
 
 **Maintainer**: Jakob Jünger <jakob.juenger@uni-muenster.de>

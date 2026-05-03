@@ -66,11 +66,13 @@
 
 
 <dt id="arg-compact">compact<a class="anchor" aria-label="anchor" href="#arg-compact"></a></dt>
-<dd><p>Whether rename types columns to <code>type</code> and to add a <code>table</code> and a <code>database</code> column.</p></dd>
+<dd><p>Whether to rename type columns to <code>type</code> and to add a <code>table</code> and a <code>database</code> column.</p></dd>
 
 
 <dt id="arg-db">db<a class="anchor" aria-label="anchor" href="#arg-db"></a></dt>
-<dd><p>A connection object (object) or the database name (character).</p></dd>
+<dd><p>A connection object (object) or the database name (character).
+Provide a character vector of dababase names to get and row bind data from multiple databases.
+In this case, the compact parameter is automatically set to TRUE. Thus, database name column is added.</p></dd>
 
 </dl></div>
 

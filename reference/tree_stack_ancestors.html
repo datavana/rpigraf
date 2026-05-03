@@ -58,7 +58,7 @@ As an example: a node on level 2 will be present two times,</p><ol><li><p>the no
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tree_stack_ancestors</span><span class="op">(</span><span class="va">data</span>, <span class="va">col_id</span>, <span class="va">col_parent</span>, <span class="va">col_stack</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tree_stack_ancestors</span><span class="op">(</span><span class="va">data</span>, <span class="va">col_id</span>, <span class="va">col_parent</span>, <span class="va">col_stack</span>, ancestor.cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -79,6 +79,10 @@ As an example: a node on level 2 will be present two times,</p><ol><li><p>the no
 
 <dt id="arg-col-stack">col_stack<a class="anchor" aria-label="anchor" href="#arg-col-stack"></a></dt>
 <dd><p>The column that will hold the ancestors IDs</p></dd>
+
+
+<dt id="arg-ancestor-cols">ancestor.cols<a class="anchor" aria-label="anchor" href="#arg-ancestor-cols"></a></dt>
+<dd><p>Additional columns to join from the ancestors, a character vector.</p></dd>
 
 </dl></div>
 

@@ -13,6 +13,7 @@ other.
 
 ``` r
 
+
 epi <- db_fetch("articles", db = "epi_movies")
 ```
 
@@ -33,6 +34,7 @@ See the api_fetch vignette for an explanation of the examples.
 #### The article perspective
 
 ``` r
+
 distill_articles(epi, c("signature", "name"))
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
@@ -43,6 +45,7 @@ distill_articles(epi, c("signature", "name"), item.type = "categories", property
 #### The properties perspective
 
 ``` r
+
 distill_properties(epi, "categories")
 
 distill_properties(epi, "categories", annos = TRUE)

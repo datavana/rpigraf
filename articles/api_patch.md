@@ -40,6 +40,7 @@ We use the following simple table as an example:
 
 ``` r
 
+
 ds <- tribble(
   ~case, ~title,       ~genre,     ~text,
   "011", "Westworld",   "Western", "In a futuristic amusement park, androids populate themed worlds like the Wild West.",
@@ -74,6 +75,7 @@ defaults to “default” (optional, if you omit it, “default” is used
 anyways)
 
 ``` r
+
 ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "name" = "Movies", "signature"="movies"))
 ```
 
@@ -81,6 +83,7 @@ ds <- craft_projects(ds, fill = c("type" = "default", "fragment" = "movies",  "n
 defaults to “default”.
 
 ``` r
+
 ds <- craft_articles(ds, fill = c("type" = "default"), cols=c("fragment" = "case", "signature" = "case", "name" = "title"))
 ```
 
@@ -89,6 +92,7 @@ automatically added and derived from the article fragment. You need a
 fragment, if you have multiple sections of the same type.
 
 ``` r
+
 ds <- craft_sections(ds, fill = c("type" = "text", "name" = "Abstract"))
 ```
 
@@ -98,6 +102,7 @@ derived from the section fragment. You need a fragment, if you have
 multiple items of the same type.
 
 ``` r
+
 ds <- craft_items(ds, fill = c("type" = "text"), cols = c("content" = "text"))
 ```
 
@@ -105,6 +110,7 @@ The **categories section** is named “Genres”. The type is fixed to
 “categories”.
 
 ``` r
+
 ds <- craft_sections(ds, fill = c("type" = "categories", "name" = "Genres"))
 ```
 
@@ -113,6 +119,7 @@ crafting a property, the column .property is added to the data frame.
 The categories item content is taken from this column.
 
 ``` r
+
 ds <- craft_properties(ds, fill = c("type" = "categories"), cols = c("fragment"="genre", "lemma" = "genre"))
 ds <- craft_items(ds, fill = c("type" = "categories"), cols = c("properties_id" = ".property"))
 ```
@@ -122,11 +129,13 @@ ds <- craft_items(ds, fill = c("type" = "categories"), cols = c("properties_id" 
 Finally, compile the stacked ram rows to get the RAM data frame.
 
 ``` r
+
 epi <- ram_compile(ds)
 ```
 
 The RAM data frame is ready to be patched (i.e. uploaded) into Epigraf.
 
 ``` r
+
 api_patch(epi, db = "epi_movies")
 ```
