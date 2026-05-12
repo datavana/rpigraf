@@ -13,7 +13,8 @@ fetch_table(table, columns = c(), params = c(), db = NA, maxpages = 1)
 
 \item{params}{A named list of query params}
 
-\item{db}{The database name}
+\item{db}{The database name.
+Provide a character vector of dababase names to get and row bind data from multiple databases.}
 
 \item{maxpages}{Maximum number of pages to request.
 Set to 1 for non-paginated tables.}

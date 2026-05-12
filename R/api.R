@@ -291,12 +291,34 @@ api_job_execute <- function(job_id) {
 #'
 #' @param endpoint The endpoint path (e.g. "articles/index" or "articles/view/1")
 #' @param params A named list of query params
-#' @param db The database name
+#' @param db The database name.
+#'           Provide a character vector of dababase names to get and row bind data from multiple databases.
+#'           In this case, the compact parameter is automatically set to TRUE. Thus, a database name column is added.
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
+#' @param compact Whether to rename type columns to `type` and to add a `table` and a `database` column.
 #' @param silent Whether to output status messages
 #' @export
-api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
+api_table <- function(endpoint, params=c(), db = NA, maxpages=1, compact = FALSE, silent=FALSE) {
+
+  # If db is a character vector of length > 1, iterate and bind
+  if (is.character(db) && length(db) > 1) {
+
+      data <- dplyr::bind_rows(
+        lapply(db, function(singledb) {
+          api_table(
+            endpoint = endpoint,
+            params = params,
+            db = singledb,
+            maxpages = maxpages,
+            compact = TRUE,
+            silent = silent
+          )
+        })
+      )
+
+      return(.to_epitable(data, c("endpoint"=endpoint, "params"=params, "db"=db)))
+  }
 
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
 
@@ -362,6 +384,19 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
     }
   }
 
+
+  if (compact) {
+    data$database <- db
+    data$table <- stringr::str_extract(endpoint,"^[a-z]+")
+
+    typecol <- colnames(data)
+    typecol <- typecol[grepl("^[a-z]+type$", typecol)]
+    if (length(typecol) == 1) {
+      data$type <- data[[typecol]]
+      data[[typecol]] <- NULL
+    }
+  }
+
   if (!silent) {
     print (paste0("Fetched ", nrow(data) ," records from ", endpoint,"."))
   }
@@ -370,7 +405,7 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, silent=FALSE) {
     data <- suppressMessages(readr::type_convert(data))
   }
 
-  .to_epitable(data, c("endpoint"=endpoint, "params" = params, "db"=db))
+  .to_epitable(data, c("endpoint"=endpoint, "params"=params, "db"=db))
 }
 
 

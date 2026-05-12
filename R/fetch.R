@@ -14,9 +14,7 @@ api_fetch <- function(table, params=c(), db = NA, maxpages=1) {
 
   params["columns"] <- "0"
   params["idents"] <- "id"
-  df <- api_table(table, params, db, maxpages)
-  df$table <- stringr::str_extract(df$id,"^[a-z]+")
-  df$database <- db
+  df <- api_table(table, params, db, maxpages, compact = TRUE)
   df <- dplyr::distinct(df)
   df <- move_cols_to_front(df, c("database", "table", "type", "id"))
   df
@@ -134,7 +132,8 @@ db_fetch <- function(table, params=list(), db = NA) {
 #' @param table The table name (e.g. "articles")
 #' @param columns A vector of column names.
 #' @param params A named list of query params
-#' @param db The database name
+#' @param db The database name.
+#'           Provide a character vector of dababase names to get and row bind data from multiple databases.
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
 #' @export
@@ -143,7 +142,6 @@ fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
   columns <-unique(c("id",columns))
   columns <- paste0(columns, collapse = ",")
   params["columns"] = columns
-
   params["idents"] <- "id"
 
   api_table(table, params, db, maxpages)

@@ -119,7 +119,7 @@ db_condition <- function(table = NA, field, value) {
 #' @param compact Whether to rename type columns to `type` and to add a `table` and a `database` column.
 #' @param db A connection object (object) or the database name (character).
 #'           Provide a character vector of dababase names to get and row bind data from multiple databases.
-#'           In this case, the compact parameter is automatically set to TRUE. Thus, database name column is added.
+#'           In this case, the compact parameter is automatically set to TRUE. Thus, a database name column is added.
 #' @export
 db_table <- function(table, cond=list(), deleted = FALSE, compact = FALSE, db){
 
@@ -202,7 +202,6 @@ db_table <- function(table, cond=list(), deleted = FALSE, compact = FALSE, db){
       df$type <- df[[typecol]]
       df[[typecol]] <- NULL
     }
-
   }
 
   return(df)
