@@ -7,7 +7,7 @@ articles:
   api_manage: api_manage.html
   api_patch: api_patch.html
   db_fetch: db_fetch.html
-last_built: 2026-05-03T11:28Z
+last_built: 2026-05-12T21:36Z
 urls:
   reference: https://datavana.github.io/rpigraf/reference
   article: https://datavana.github.io/rpigraf/articles

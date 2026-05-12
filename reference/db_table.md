@@ -34,4 +34,4 @@ db_table(table, cond = list(), deleted = FALSE, compact = FALSE, db)
   A connection object (object) or the database name (character). Provide
   a character vector of dababase names to get and row bind data from
   multiple databases. In this case, the compact parameter is
-  automatically set to TRUE. Thus, database name column is added.
+  automatically set to TRUE. Thus, a database name column is added.

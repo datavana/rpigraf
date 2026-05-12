@@ -5,7 +5,14 @@ Fetches tables such as articles, projects or properties
 ## Usage
 
 ``` r
-api_table(endpoint, params = c(), db = NA, maxpages = 1, silent = FALSE)
+api_table(
+  endpoint,
+  params = c(),
+  db = NA,
+  maxpages = 1,
+  compact = FALSE,
+  silent = FALSE
+)
 ```
 
 ## Arguments
@@ -20,11 +27,19 @@ api_table(endpoint, params = c(), db = NA, maxpages = 1, silent = FALSE)
 
 - db:
 
-  The database name
+  The database name. Provide a character vector of dababase names to get
+  and row bind data from multiple databases. In this case, the compact
+  parameter is automatically set to TRUE. Thus, a database name column
+  is added.
 
 - maxpages:
 
   Maximum number of pages to request. Set to 1 for non-paginated tables.
+
+- compact:
+
+  Whether to rename type columns to `type` and to add a `table` and a
+  `database` column.
 
 - silent:
 
