@@ -386,8 +386,11 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, compact = FALSE
 
 
   if (compact) {
+
     data$database <- db
-    data$table <- stringr::str_extract(endpoint,"^[a-z]+")
+    table_default <- stringr::str_extract(endpoint,"^[a-z]+")
+    table_id <- stringr::str_extract(data$id,"^[a-z]+")
+    data$table <- dplyr::coalesce(data$table, table_id, table_default)
 
     typecol <- colnames(data)
     typecol <- typecol[grepl("^[a-z]+type$", typecol)]
