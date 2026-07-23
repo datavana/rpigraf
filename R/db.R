@@ -71,7 +71,7 @@ db_databases <- function(epi = TRUE) {
   if (epi) {
     dbs <- dplyr::filter(dbs, stringr::str_starts(.data$name,"epi_"))
     meta <- db_table("databanks", db= DB_MAIN, deleted=T)
-    dbs <- full_join(dbs, meta, by="name")
+    dbs <- dplyr::full_join(dbs, meta, by="name")
   }
 
   return(dbs)

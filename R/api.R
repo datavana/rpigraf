@@ -385,7 +385,7 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, compact = FALSE
   }
 
 
-  if (compact) {
+  if (compact && nrow(data) > 0) {
 
     data$database <- db
     table_default <- stringr::str_extract(endpoint,"^[a-z]+")
