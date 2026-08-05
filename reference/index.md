@@ -13,6 +13,10 @@
 - [`api_fetch()`](https://datavana.github.io/rpigraf/reference/api_fetch.md)
   : Fetch entity data such as articles, projects or properties from the
   API
+- [`api_fetch_entity()`](https://datavana.github.io/rpigraf/reference/api_fetch_entity.md)
+  : Fetch entities such as single articles, projects or properties
+- [`api_fetch_table()`](https://datavana.github.io/rpigraf/reference/api_fetch_table.md)
+  : Fetch tables such as articles, projects or properties
 - [`api_job_create()`](https://datavana.github.io/rpigraf/reference/api_job_create.md)
   : Create and execute a job
 - [`api_job_execute()`](https://datavana.github.io/rpigraf/reference/api_job_execute.md)
@@ -96,10 +100,6 @@
   table names and temporary prefixes. Example: articles-tmp123
 - [`epi_wide_to_long()`](https://datavana.github.io/rpigraf/reference/epi_wide_to_long.md)
   : Convert wide to long format
-- [`fetch_entity()`](https://datavana.github.io/rpigraf/reference/fetch_entity.md)
-  : Fetch entities such as single articles, projects or properties
-- [`fetch_table()`](https://datavana.github.io/rpigraf/reference/fetch_table.md)
-  : Fetch tables such as articles, projects or properties
 - [`merge_lists()`](https://datavana.github.io/rpigraf/reference/merge_lists.md)
   : Merge list elements by their name
 - [`merge_vectors()`](https://datavana.github.io/rpigraf/reference/merge_vectors.md)

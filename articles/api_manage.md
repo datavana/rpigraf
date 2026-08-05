@@ -7,7 +7,7 @@
 api_post("databanks/add", payload=list("name"="dio","category"="DIO"))
 
 # Clear databases in a category
-dbs <- fetch_table("databanks", params=c("category"="DIO"))
+dbs <- api_fetch_table("databanks", params=c("category"="DIO"))
 
 for (dbid in dbs$id) {
   api_post(paste0("databanks/drop/", dbid))
