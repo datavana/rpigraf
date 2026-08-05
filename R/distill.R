@@ -15,6 +15,7 @@
 #' @export
 distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =c(), item.type = NULL, item.cols = c(), property.cols = c()) {
   cases <- df[df$table == "articles", unique(c("id","type","norm_iri", cols))]
+  cases <- dplyr::distinct(cases)
 
   extract.cols <- c()
   if (length(section.cols) > 0) {

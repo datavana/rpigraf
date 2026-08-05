@@ -137,7 +137,7 @@ db_fetch <- function(table, params=list(), db = NA) {
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
 #' @export
-fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
+api_fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
 
   columns <-unique(c("id",columns))
   columns <- paste0(columns, collapse = ",")
@@ -152,15 +152,15 @@ fetch_table <- function(table, columns=c(), params=c(), db = NA, maxpages=1) {
 #' Returns all data belonging to the entity identified by ID.
 #' The procedure corresponds to calling the view action in the Epigraf interface.
 #'
-#' @param ids A character vector with IDs as returned by fetch_table, e.g. articles-1.
+#' @param ids A character vector with IDs as returned by api_fetch_table, e.g. articles-1.
 #'            Alternatively, provide a dataframe containg the IDs in the id-column.
-#'            So you can chain fetch_articles() and fetch_entity()
+#'            So you can chain fetch_articles() and api_fetch_entity()
 #' @param params A named list of query params
-#' @param db The database name. Leave empty when providing a dataframe produced by fetch_table().
+#' @param db The database name. Leave empty when providing a dataframe produced by api_fetch_table().
 #'           In this case, the database name will be extracted from the dataframe.
 #' @param silent Whether to output a progress bar
 #' @export
-fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
+api_fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
   # Get the database name from a dataframe
   if (is.null(db) && ("epi_tbl" %in% class(ids))) {
     db <- attr(ids, "source")["db"]
@@ -186,7 +186,7 @@ fetch_entity <- function(ids, params = c(), db = NULL, silent = FALSE) {
       data <- bind_rows_char(
         list(
           data,
-          fetch_entity(id, params, db, silent = TRUE)
+          api_fetch_entity(id, params, db, silent = TRUE)
         )
       )
 
