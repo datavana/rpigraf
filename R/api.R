@@ -168,7 +168,7 @@ api_job_create <- function(endpoint, params, database, payload=NULL) {
 #' @export
 api_job_execute <- function(job_id) {
   verbose <- Sys.getenv("epi_verbose") == "TRUE"
-  print(paste0("Starting job ", job_id, "."))
+  cli::cli_alert_info("Starting job {job_id}.")
 
   url = api_buildurl(paste0("jobs/execute/", job_id))
 
@@ -176,7 +176,7 @@ api_job_execute <- function(job_id) {
   polling <- T
   error <- NA
   message <- NA
-  pb <- NULL
+  pb <- cli::cli_progress_bar("Executing", total = NA, .auto_close = FALSE)
 
   while (polling) {
 
@@ -221,7 +221,20 @@ api_job_execute <- function(job_id) {
       #url <- purrr::pluck(body,"job","nexturl",.default = NA)
       #api_buildurl(url, NA, "epi_all")
 
-      pb <- .api_progress(pb, body)
+      progressCurrent <- purrr::pluck(body, "job", "progress",    .default = NA)
+      progressMax     <- purrr::pluck(body, "job", "progressmax", .default = -1)
+
+      # if (progressMax == -1) {
+      #   print(paste0("Progress ", progressCurrent))
+      # } else {
+      #   print(paste0("Progress ", progressCurrent, " / ", progressMax))
+      # }
+
+      if (progressMax > 0 && !is.na(progressCurrent)) {
+        cli::cli_progress_update(id = pb, total = progressMax, set = progressCurrent)
+      } else {
+        cli::cli_progress_update(id = pb, force = TRUE)
+      }
     }
 
     # Finished
@@ -233,20 +246,17 @@ api_job_execute <- function(job_id) {
       newresult <- purrr::pluck(body,"job","result",.default = NA)
     }
 
-    if (!is.null(pb)) {
-      cli::cli_progress_done(id = pb)
-    }
-
     if (!is.na(newresult)) {
       result = append(result, list(newresult))
     }
 
     # Output
     if (!is.na(message)) {
-      print(message)
+      cli::cli_progress_output(message, id = pb)
     }
-
   }
+
+  cli::cli_progress_done(id = pb)
 
   # Extract solved IDs
   solved <- lapply(result, \(x) tibble::enframe(unlist(x$solved)))
@@ -755,32 +765,4 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 
   class(data) <- c("epi_tbl", setdiff(class(data), "epi_tbl"))
   data
-}
-
-
-#' Show a progress bar based on job progress fields
-#'
-#' @keywords internal
-#'
-#' @param pb The current progress bar isntance or NULL
-#' @param body The job body
-#' @return The progress bar instance
-.api_progress <- function(pb, body) {
-
-  progressCurrent <- purrr::pluck(body,"job","progress",.default = NA)
-  progressMax <- purrr::pluck(body,"job","progressmax",.default = -1)
-
-  if (is.null(pb)) {
-    pb <- cli::cli_progress_bar(
-      total = if (progressMax > 0) progressMax else NA,
-      .auto_close = FALSE
-    )
-  }
-  if (!is.na(progressCurrent)) {
-    cli::cli_progress_update(id = pb, set = progressCurrent)
-  } else {
-    cli::cli_progress_update(id = pb)
-  }
-
-  return (pb)
 }
