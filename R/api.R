@@ -176,6 +176,7 @@ api_job_execute <- function(job_id) {
   polling <- T
   error <- NA
   message <- NA
+  pb <- NULL
 
   while (polling) {
 
@@ -220,13 +221,7 @@ api_job_execute <- function(job_id) {
       #url <- purrr::pluck(body,"job","nexturl",.default = NA)
       #api_buildurl(url, NA, "epi_all")
 
-      progressCurrent <- purrr::pluck(body,"job","progress",.default = NA)
-      progressMax <- purrr::pluck(body,"job","progressmax",.default = -1)
-      if (progressMax == -1) {
-        print(paste0("Progress ", progressCurrent))
-      } else {
-        print(paste0("Progress ", progressCurrent, " / ", progressMax))
-      }
+      pb <- .api_progress(pb, body)
     }
 
     # Finished
@@ -236,6 +231,10 @@ api_job_execute <- function(job_id) {
       error <- F
       message <- purrr::pluck(body,"message",.default = NA)
       newresult <- purrr::pluck(body,"job","result",.default = NA)
+    }
+
+    if (!is.null(pb)) {
+      cli::cli_progress_done(id = pb)
     }
 
     if (!is.na(newresult)) {
@@ -759,3 +758,29 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 }
 
 
+#' Show a progress bar based on job progress fields
+#'
+#' @keywords internal
+#'
+#' @param pb The current progress bar isntance or NULL
+#' @param body The job body
+#' @return The progress bar instance
+.api_progress <- function(pb, body) {
+
+  progressCurrent <- purrr::pluck(body,"job","progress",.default = NA)
+  progressMax <- purrr::pluck(body,"job","progressmax",.default = -1)
+
+  if (is.null(pb)) {
+    pb <- cli::cli_progress_bar(
+      total = if (progressMax > 0) progressMax else NA,
+      .auto_close = FALSE
+    )
+  }
+  if (!is.na(progressCurrent)) {
+    cli::cli_progress_update(id = pb, set = progressCurrent)
+  } else {
+    cli::cli_progress_update(id = pb)
+  }
+
+  return (pb)
+}

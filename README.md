@@ -9,6 +9,13 @@ It provides functions for data transfer using the Epigraf APIs: Preparing data i
 library(remotes)
 install_github("datavana/rpigraf")
 ```
+## Usage 
+
+There are two ways to access Epigraf data: 
+
+- **API**: Used to access data and create jobs from outside the server. 
+- **Database**: Presumes you have a direct connection to the database server, e.g. in a development environment. 
+
 
 ## Access the Epigraf API
 
