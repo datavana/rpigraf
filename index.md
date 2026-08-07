@@ -10,6 +10,14 @@ imports, e.g. from social media datasets, and preparing data analyses.
     library(remotes)
     install_github("datavana/rpigraf")
 
+## Usage
+
+There are two ways to access Epigraf data:
+
+- **API**: Used to access data and create jobs from outside the server.
+- **Database**: Presumes you have a direct connection to the database
+  server, e.g. in a development environment.
+
 ## Access the Epigraf API
 
 Please be aware: The API is under development and responds at a cosy
