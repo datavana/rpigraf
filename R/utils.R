@@ -328,3 +328,87 @@ join_path <- function(filename, filepath = NULL) {
     return(file.path(filepath, filename))
   }
 }
+
+#' Inject character offsets into id-bearing XML elements
+#'
+#' Walks the XML tree once in document order, accumulating a running character
+#' offset over all text and CDATA nodes, and stamps `data-start` and `data-end`
+#' attributes onto every element that carries an `id` attribute. Offsets are
+#' 1-based and inclusive, and refer to positions in the *plain* (tag-stripped)
+#' text, i.e. the concatenation of all text nodes in document order.
+#'
+#' The input is wrapped in a synthetic `<root>` element so that XML fragments
+#' with multiple top-level nodes can be parsed. Mixed content (interleaved text
+#' and elements) is handled correctly: a parent element's span covers both its
+#' text runs and its child elements, while children span only their own content.
+#' Comment and processing-instruction nodes are skipped, consistent with how
+#' [xml2::xml_text()] and `//text()` treat them.
+#'
+#' @keywords internal
+#'
+#' @param xml Character value containing XML text. May be a fragment with
+#'   several top-level nodes.
+#' @return An [xml2::xml_document] with `data-start` and `data-end` integer-valued
+#'   attributes injected onto all elements that have an `id`. Feed the result to
+#'   [extract_positions()] for a tidy data frame of spans.
+#' @seealso [extract_segments()]
+annotate_offsets <- function(xml) {
+  doc <- xml2::read_xml(paste0("<root>", xml, "</root>"))
+  offset <- 0L
+
+  walk <- function(node) {
+    start <- offset + 1L                    # 1-based inclusive
+    kids  <- xml2::xml_contents(node)
+    types <- xml2::xml_type(kids)
+
+    for (i in seq_along(kids)) {
+      tp <- types[i]
+      if (tp == "text" || tp == "cdata") {
+        offset <<- offset + nchar(xml2::xml_text(kids[[i]]))
+      } else if (tp == "element") {
+        walk(kids[[i]])
+      }
+    }
+
+    # only stamp nodes we care about, to cut down on writes
+    if (!is.na(xml2::xml_attr(node, "id"))) {
+      xml2::xml_set_attr(node, "data-start", start)
+      xml2::xml_set_attr(node, "data-end",   offset)
+    }
+  }
+
+  walk(xml2::xml_root(doc))
+  doc
+}
+
+
+#' Total length covered by a set of integer intervals
+#'
+#' Merges overlapping/adjacent `[start, end]` ranges and sums their widths, so
+#' overlapping annotations are counted once. Ranges are 1-based and inclusive.
+#'
+#' @keywords internal
+#'
+#' @param start Integer vector of range starts.
+#' @param end Integer vector of range ends.
+#' @return A single integer: the number of distinct positions covered.
+covered_length <- function(start, end) {
+  if (length(start) == 0) return(0L)
+  ord <- order(start, end)
+  start <- start[ord]
+  end   <- end[ord]
+
+  total  <- 0L
+  cur_lo <- start[1]
+  cur_hi <- end[1]
+  for (i in seq_along(start)[-1]) {
+    if (start[i] <= cur_hi + 1L) {          # overlapping or adjacent
+      cur_hi <- max(cur_hi, end[i])
+    } else {
+      total  <- total + (cur_hi - cur_lo + 1L)
+      cur_lo <- start[i]
+      cur_hi <- end[i]
+    }
+  }
+  total + (cur_hi - cur_lo + 1L)
+}

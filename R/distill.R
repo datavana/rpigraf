@@ -110,7 +110,7 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
 
 
     # links
-    links <- distill_links(df, properties.type = type, cols = c("segment"), level = NULL)
+    links <- distill_links(df, properties.type = type, cols = c("segments", "offsets", "length", "coverage"), level = NULL)
 
     if (nrow(links) > 0) {
       links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
@@ -197,11 +197,14 @@ distill_items <- function(df, type = NULL, cols = c(), property.cols = c(), arti
 #' @param df A RAM data frame.
 #' @param items.type The type of items with annotations.
 #' @param properties.type Keep only links that target the given property type.
+#' @param cols A list of columns to add. Add `segments` to extract annotated text segments.
+#'             Add `offsets` to return annotated offsets, add `length` to add a plain text size column.
+#'             Add `coverage` to get the percentage of covered plain text.
 #' @param article.cols A list of article columns to join.
 #' @param level The aggregation level, beginning with 0. Set to NULL to get the lowest level.
 #' @importFrom rlang .data
 #' @return A tibble containing annotations.
-distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols = c("path", "segment"), article.cols=c(), level = 0) {
+distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols = c("path", "segments", "offsets", "length", "coverage"), article.cols=c(), level = 0) {
 
   codes <- distill_properties(df, properties.type, cols = c("parent_id","level","norm_iri"))
   cases <- distill_articles(df, cols = article.cols)
@@ -264,23 +267,56 @@ distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols =
 
 
   # Segments in items
-  segments <- epi_extract_long(df, "items", items.type, prefix = FALSE)
-  segments$items_id <- segments$id
-  segments <- add_missing_columns(segments, c("items_id", "sections_id", "articles_id", "content", "norm_iri"), NA_character_)
+  # Segments / offsets in items
+  if (any(c("segments", "offsets", "length", "coverage") %in% cols)) {
+    segments <- epi_extract_long(df, "items", items.type, prefix = FALSE)
+    segments$items_id <- segments$id
+    segments <- add_missing_columns(segments, c("items_id", "sections_id", "articles_id", "content", "norm_iri"), NA_character_)
 
-  segments <- segments |>
-    dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "content", "norm_iri"))) |>
-    dplyr::mutate(dplyr::across(tidyselect::everything(), as.character)) |>
-    dplyr::inner_join(codings, by=c("items_id" = "from_id"), relationship="many-to-many")  |>
-    dplyr::mutate(item_iri = .data$norm_iri) |>
-    dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "from_tagid", "content", "item_iri"))) |>
-    dplyr::rowwise() |>
-    dplyr::mutate(segment = paste0(extract_segment(.data$content, .data$from_tagid), collapse=";"))
+    segments <- segments |>
+      dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "content", "norm_iri"))) |>
+      dplyr::mutate(dplyr::across(tidyselect::everything(), as.character)) |>
+      dplyr::inner_join(codings, by = c("items_id" = "from_id"), relationship = "many-to-many") |>
+      dplyr::mutate(item_iri = .data$norm_iri) |>
+      dplyr::select(tidyselect::all_of(c("items_id", "sections_id", "articles_id", "from_tagid", "content", "item_iri")))
 
-  # TODO: Segments in footnotes
+    # Parse each distinct content only once, reuse the annotated doc per row
+    docs <- tibble::tibble(content = unique(segments$content))
+    docs$.doc <- lapply(docs$content, function(x) if (is.na(x)) NULL else annotate_offsets(x))
+    segments <- dplyr::left_join(segments, docs, by = "content")
 
-  # Join
-  codings <- dplyr::left_join(codings, segments, by=c("from_id" = "items_id", "from_tagid"))
+    # One extraction per row against the pre-parsed doc
+    offsets <- Map(extract_segments, segments$.doc, segments$from_tagid)
+
+    if ("segments" %in% cols) {
+      segments$segments <- vapply(offsets, `[[`, character(1), "segments")
+    }
+    if ("offsets" %in% cols) {
+      segments$offsets <- vapply(offsets, `[[`, character(1), "offsets")
+    }
+    if ("length" %in% cols) {
+      segments$length <- vapply(offsets, `[[`, integer(1), "length")
+    }
+
+    if ("coverage" %in% cols) {
+      segments$coverage <- vapply(offsets, `[[`, numeric(1), "coverage")
+    }
+
+    segments <- dplyr::select(
+      segments,
+      tidyselect::any_of(c(
+        "items_id", "sections_id", "articles_id",
+        "from_tagid", "content", "item_iri",
+        "segments", "offsets","length","coverage"
+      ))
+    )
+
+    # TODO: Segments in footnotes
+
+    # Join
+    codings <- dplyr::left_join(codings, segments, by = c("from_id" = "items_id", "from_tagid"))
+  }
+
   codings$items_id <- codings$from_id
 
   codings <- dplyr::select(codings, tidyselect::any_of(c(article.cols, "articles_id","sections_id","items_id", "from_tagid", cols, "to_id")))
@@ -288,19 +324,93 @@ distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols =
   codings
 }
 
-#' Function to extract segments based on ID attribute
+
+#' Extract segment text and character offsets for a tag id
+#'
+#' Pulls both the plain text and the character-offset ranges for all elements
+#' matching `tagid`. Reads the `data-start` / `data-end` attributes injected by
+#' [annotate_offsets()] and works vectorized over the selected node set, so
+#' repeated extraction from the same annotated document is cheap.
+#'
+#' Multiple matches (discontinuous annotations sharing an `id`) yield multiple
+#' spans, returned in document order so that `segments` and `offsets` align
+#' element-for-element.
 #'
 #' @keywords internal
 #'
-#' @param xml Character value containing XML text.
-#' @param tagid Character value containing the tag ID.
-#' @return A character value containing only the text of elements with the tag ID.
-extract_segment <- function(xml, tagid) {
-  xml <- paste0("<root>",xml,"</root>")
-  xml_doc <- xml2::read_xml(xml)
-  segments <- xml2::xml_find_all(xml_doc, paste0('//*[@id="', tagid, '"]//text()'))
-  segment_text <- trimws(xml2::xml_text(segments))
-  return(segment_text)
+#' @param doc One of: an [xml2::xml_document] already processed by
+#'   [annotate_offsets()] (whose id-bearing elements carry `data-start` /
+#'   `data-end` attributes); a character value containing raw XML, which is
+#'   annotated on the fly; or `NULL` (e.g. for missing content), in which case
+#'   `NA` values are returned. Pass a pre-annotated document when extracting
+#'   several tag ids from the same content, to avoid re-parsing.
+#' @param tagid Optional character value giving the tag `id` to extract. If
+#'   `NULL`, all offset-annotated elements are returned.
+#' @return A list with elements:
+#'   \describe{
+#'     \item{segments}{Text pieces joined by `;`.}
+#'     \item{offsets}{Ranges as `"start-end"` joined by `;`.}
+#'     \item{ranges}{A one-element list holding a data frame with columns
+#'       `id`, `tag`, `start`, `end`, `text` (one row per matching element).
+#'       The `start`/`end` columns can be passed directly to
+#'       [IRanges::IRanges()] for coverage and overlap analysis.}
+#'   }
+#' @seealso [annotate_offsets()]
+extract_segments <- function(doc, tagid = NULL) {
+
+  if (is.null(doc) || (is.character(doc) && (length(doc) == 0 || is.na(doc)))) {
+    return(list(
+      segments = NA_character_,
+      offsets  = NA_character_,
+      length   = NA_integer_,
+      coverage = NA_real_,
+      ranges   = list(NULL)
+    ))
+  }
+
+  if (is.character(doc)) {
+    doc <- annotate_offsets(doc)
+  }
+
+  full_length <- nchar(xml2::xml_text(xml2::xml_root(doc)))
+
+  xpath <- if (is.null(tagid))
+    "//*[@data-start]"
+  else
+    paste0('//*[@id="', tagid, '"][@data-start]')
+
+  els <- xml2::xml_find_all(doc, xpath)
+
+  pos <- data.frame(
+    id    = xml2::xml_attr(els, "id"),
+    tag   = xml2::xml_name(els),
+    start = as.integer(xml2::xml_attr(els, "data-start")),
+    end   = as.integer(xml2::xml_attr(els, "data-end")),
+    text  = xml2::xml_text(els),
+    length = full_length,
+    stringsAsFactors = FALSE
+  )
+
+  if (nrow(pos) == 0) {
+    return(list(
+      segments = NA_character_,
+      offsets  = NA_character_,
+      length   = full_length,
+      coverage = 0,
+      ranges   = list(pos)
+    ))
+  }
+
+  covered  <- covered_length(pos$start, pos$end)
+  coverage <- if (full_length > 0) covered / full_length else NA_real_
+
+  list(
+    segments = paste0(pos$text, collapse = ";"),
+    offsets  = paste0(pos$start, "-", pos$end, collapse = ";"),
+    length   = full_length,
+    coverage = coverage,
+    ranges   = list(pos)
+  )
 }
 
 #' Function to extract non-tagged text
