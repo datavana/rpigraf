@@ -251,11 +251,19 @@ epi_wide_to_long <- function(data) {
 
   # Create table columns
   if ((nrow(rows) > 0) && (ncol(rows) > 0)) {
+
     rows <- rows |>
       dplyr::filter(dplyr::if_any(tidyselect::everything(), ~ !is.na(.))) |>
-      dplyr::mutate(table=stringr::str_extract(.data$id,"^[^/]+")) |>
+      dplyr::mutate(table=dplyr::case_when(
+        epi_is_id(.data$id) ~ stringr::str_extract(.data$id,"^[^-]+"),
+        epi_is_iripath(.data$id) ~ stringr::str_extract(.data$id,"^[^/]+"),
+        TRUE ~ NA
+        )
+      ) |>
       dplyr::select(tidyselect::all_of(c("table", "id")), tidyselect::everything())
   }
+
+  stopifnot(!is.na((rows$table)))
 
   rows
 }
