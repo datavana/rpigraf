@@ -348,9 +348,9 @@ join_path <- function(filename, filepath = NULL) {
 #'
 #' @param xml Character value containing XML text. May be a fragment with
 #'   several top-level nodes.
-#' @return An [xml2::xml_document] with `data-start` and `data-end` integer-valued
+#' @return An `xml2::xml_document` with `data-start` and `data-end` integer-valued
 #'   attributes injected onto all elements that have an `id`. Feed the result to
-#'   [extract_positions()] for a tidy data frame of spans.
+#'   [extract_segments()] for a tidy data frame of spans.
 #' @seealso [extract_segments()]
 annotate_offsets <- function(xml) {
   doc <- xml2::read_xml(paste0("<root>", xml, "</root>"))

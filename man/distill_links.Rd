@@ -8,7 +8,7 @@ distill_links(
   df,
   items.type = NULL,
   properties.type = NULL,
-  cols = c("path", "segment"),
+  cols = c("path", "segments", "offsets", "length", "coverage"),
   article.cols = c(),
   level = 0
 )
@@ -19,6 +19,10 @@ distill_links(
 \item{items.type}{The type of items with annotations.}
 
 \item{properties.type}{Keep only links that target the given property type.}
+
+\item{cols}{A list of columns to add. Add \code{segments} to extract annotated text segments.
+Add \code{offsets} to return annotated offsets, add \code{length} to add a plain text size column.
+Add \code{coverage} to get the percentage of covered plain text.}
 
 \item{article.cols}{A list of article columns to join.}
 

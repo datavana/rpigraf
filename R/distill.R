@@ -338,7 +338,7 @@ distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols =
 #'
 #' @keywords internal
 #'
-#' @param doc One of: an [xml2::xml_document] already processed by
+#' @param doc One of: an `xml2::xml_document` already processed by
 #'   [annotate_offsets()] (whose id-bearing elements carry `data-start` /
 #'   `data-end` attributes); a character value containing raw XML, which is
 #'   annotated on the fly; or `NULL` (e.g. for missing content), in which case
@@ -353,7 +353,7 @@ distill_links <- function(df,  items.type = NULL, properties.type = NULL, cols =
 #'     \item{ranges}{A one-element list holding a data frame with columns
 #'       `id`, `tag`, `start`, `end`, `text` (one row per matching element).
 #'       The `start`/`end` columns can be passed directly to
-#'       [IRanges::IRanges()] for coverage and overlap analysis.}
+#'       `IRanges::IRanges()` for coverage and overlap analysis.}
 #'   }
 #' @seealso [annotate_offsets()]
 extract_segments <- function(doc, tagid = NULL) {
