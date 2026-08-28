@@ -50,7 +50,7 @@
 <span>  <span class="va">df</span>,</span>
 <span>  items.type <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  properties.type <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path"</span>, <span class="st">"segment"</span><span class="op">)</span>,</span>
+<span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path"</span>, <span class="st">"segments"</span>, <span class="st">"offsets"</span>, <span class="st">"length"</span>, <span class="st">"coverage"</span><span class="op">)</span>,</span>
 <span>  article.cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -70,6 +70,12 @@
 
 <dt id="arg-properties-type">properties.type<a class="anchor" aria-label="anchor" href="#arg-properties-type"></a></dt>
 <dd><p>Keep only links that target the given property type.</p></dd>
+
+
+<dt id="arg-cols">cols<a class="anchor" aria-label="anchor" href="#arg-cols"></a></dt>
+<dd><p>A list of columns to add. Add <code>segments</code> to extract annotated text segments.
+Add <code>offsets</code> to return annotated offsets, add <code>length</code> to add a plain text size column.
+Add <code>coverage</code> to get the percentage of covered plain text.</p></dd>
 
 
 <dt id="arg-article-cols">article.cols<a class="anchor" aria-label="anchor" href="#arg-article-cols"></a></dt>

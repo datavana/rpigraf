@@ -11,6 +11,7 @@
 <url><loc>https://datavana.github.io/rpigraf/index.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/abc2num.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/add_missing_columns.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/annotate_offsets.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/api_buildurl.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/api_delete.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/api_download.html</loc></url>
@@ -31,6 +32,7 @@
 <url><loc>https://datavana.github.io/rpigraf/reference/check_is_db.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/check_is_id.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/confirmAction.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/covered_length.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/craft_articles.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/craft_items.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/craft_projects.html</loc></url>
@@ -64,7 +66,7 @@
 <url><loc>https://datavana.github.io/rpigraf/reference/epi_is_iripath.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/epi_is_prefixid.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/epi_wide_to_long.html</loc></url>
-<url><loc>https://datavana.github.io/rpigraf/reference/extract_segment.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/extract_segments.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/extract_untagged.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/get_extension.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/index.html</loc></url>
