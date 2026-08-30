@@ -252,7 +252,9 @@ api_job_execute <- function(job_id) {
 
     # Output
     if (!is.na(message)) {
-      cli::cli_progress_output(message, id = pb)
+      print(message)
+      # TODO: makes trouble in PyCharm, use another package?
+      #cli::cli_progress_output(message, id = pb)
     }
   }
 
