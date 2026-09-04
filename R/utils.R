@@ -112,17 +112,6 @@ parse_json <- function(data) {
   jsonlite::stream_in(textConnection(data))
 }
 
-#' Merge list elements by their name
-#'
-#'@param l A list of lists to merge
-#'@return A merged list
-#'@export
-merge_lists <- function(l) {
-  keys <- unique(unlist(lapply(l, names)))
-  l <- stats::setNames(do.call(mapply, c(FUN=c, lapply(l, `[`, keys))), keys)
-  as.list(l)
-}
-
 #' Convert a number to letters, e.g. 3 becomes c
 #'
 #' @param number The number to convert
@@ -264,6 +253,17 @@ bind_rows_char <- function(dataframes){
   }
 
   return(dplyr::bind_rows(dataframes))
+}
+
+#' Merge list elements by their name
+#'
+#'@param l A list of lists to merge
+#'@return A merged list
+#'@export
+merge_lists <- function(l) {
+  keys <- unique(unlist(lapply(l, names)))
+  l <- stats::setNames(do.call(mapply, c(FUN=c, lapply(l, `[`, keys))), keys)
+  as.list(l)
 }
 
 #' Merge vectors

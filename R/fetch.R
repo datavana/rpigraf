@@ -24,8 +24,19 @@ api_fetch <- function(table, params=c(), db = NA, maxpages=1) {
 #'
 #' Returns all data belonging to all entities matched by the params.
 #'
+#' Params may contain sublists named by a table name to target conditions at a
+#' specific table, e.g.
+#' \code{params = list("properties" = list("propertytype" = "fonttypes"),
+#'                     "articles"   = list("articletype"  = "epi-article"))}.
+#' Any parameters not nested under one of the tables \code{articles},
+#' \code{sections}, \code{items}, \code{properties}, \code{links},
+#' \code{footnotes} or \code{projects} are passed to the first (root)
+#' \code{db_table} call.
+#'
 #' @param table The table name (e.g. "articles").
 #' @param params A named list of query conditions, passed to db_table.
+#'              May contain sublists named by a table name to route conditions
+#'              to that table.
 #' @param db The database name (character).
 #'           Provide a character vector of dababase names to get and row bind data from multiple databases.
 #' @importFrom rlang .data
@@ -47,7 +58,26 @@ db_fetch <- function(table, params=list(), db = NA) {
     )
   }
 
-  df_root <- db_table(table, params, db = db, compact = TRUE)
+  # Split params into table-specific sublists and root params.
+  # Sublists named by one of the known tables are routed to that table's
+  # db_table call; everything else goes to the first (root) call.
+  known_tables <- c("articles", "sections", "items", "properties", "links", "footnotes", "projects")
+  table_params <- list()
+  root_params  <- list()
+  for (nm in names(params)) {
+    if (!is.null(nm) && nm %in% known_tables && is.list(params[[nm]])) {
+      table_params[[nm]] <- params[[nm]]
+    } else {
+      root_params[[nm]] <- params[[nm]]
+    }
+  }
+
+  # Merge base query conditions with any table-specific extra conditions.
+  merge_params <- function(base, tbl) {
+    merge_lists(list(base, table_params[[tbl]]))
+  }
+
+  df_root <- db_table(table, merge_params(root_params, table), db = db, compact = TRUE)
   df <- df_root
 
   # Get contained article data
@@ -59,33 +89,33 @@ db_fetch <- function(table, params=list(), db = NA) {
     df$project <- df$projects_id
     df$projects_id <- NULL
 
-    df_sections <- db_table("sections", list("articles_id" = df_root$id), db = db, compact = TRUE)
+    df_sections <- db_table("sections", merge_params(list("articles_id" = df_root$id), "sections"), db = db, compact = TRUE)
     df <- bind_rows_char(list(df, df_sections))
 
-    df_items <- db_table("items", list("articles_id" = df_root$id), db = db, compact = TRUE)
+    df_items <- db_table("items", merge_params(list("articles_id" = df_root$id), "items"), db = db, compact = TRUE)
     df_items$property <- df_items$properties_id
     df_items$properties_id <- NULL
     df <- bind_rows_char(list(df, df_items))
 
     items_props <- df_items[!is.na(df_items$property),]$property
     if (length(items_props) > 0) {
-      df_props <- db_table("properties", list("id" = items_props), db = db, compact = TRUE)
+      df_props <- db_table("properties", merge_params(list("id" = items_props), "properties"), db = db, compact = TRUE)
       df <- bind_rows_char(list(df, df_props))
     }
 
-    df_footnotes <- db_table("footnotes", list("root_tab" = "articles", "root_id" = df_root$id), db = db, compact = TRUE)
+    df_footnotes <- db_table("footnotes", merge_params(list("root_tab" = "articles", "root_id" = df_root$id), "footnotes"), db = db, compact = TRUE)
     df <- bind_rows_char(list(df, df_footnotes))
 
-    df_links <- db_table("links", list("root_tab" = "articles", "root_id" = df_root$id), db = db, compact = TRUE)
+    df_links <- db_table("links", merge_params(list("root_tab" = "articles", "root_id" = df_root$id), "links"), db = db, compact = TRUE)
     df <- bind_rows_char(list(df, df_links))
 
     links_props <- dplyr::filter(df_links, .data$to_tab == "properties", !is.na(.data$to_id))
     if (nrow(links_props) > 0) {
-      df_props <- db_table("properties", list("id" = links_props$to_id), db = db, compact = TRUE)
+      df_props <- db_table("properties", merge_params(list("id" = links_props$to_id), "properties"), db = db, compact = TRUE)
       df <- bind_rows_char(list(df, df_props))
     }
 
-    df_projects <- db_table("projects", list("id" = df_root$project), db = db, compact = TRUE)
+    df_projects <- db_table("projects", merge_params(list("id" = df_root$project), "projects"), db = db, compact = TRUE)
     df <- bind_rows_char(list(df, df_projects))
 
   }
