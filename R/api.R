@@ -24,10 +24,14 @@ api_setup <- function(apiserver, apitoken = NULL, verbose = FALSE) {
 #' Be careful, this will skip the prompt to confirm operations
 #' on the live server.
 #'
-#' @param silent Boolen
+#' In verbose mode, debug messages will be printed.
+#'
+#' @param silent Boolean
+#' @param verbose Boolean
 #' @export
-api_silent <- function(silent = F) {
+api_silent <- function(silent = F, verbose = F) {
   Sys.setenv("epi_silent" = silent)
+  Sys.setenv("epi_verbose" = verbose)
 }
 
 #' Build base URL

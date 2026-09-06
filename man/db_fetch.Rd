@@ -9,11 +9,23 @@ db_fetch(table, params = list(), db = NA)
 \arguments{
 \item{table}{The table name (e.g. "articles").}
 
-\item{params}{A named list of query conditions, passed to db_table.}
+\item{params}{A named list of query conditions, passed to db_table.
+May contain sublists named by a table name to route conditions
+to that table.}
 
 \item{db}{The database name (character).
 Provide a character vector of dababase names to get and row bind data from multiple databases.}
 }
 \description{
 Returns all data belonging to all entities matched by the params.
+}
+\details{
+Params may contain sublists named by a table name to target conditions at a
+specific table, e.g.
+\code{params = list("properties" = list("propertytype" = "fonttypes"),
+                    "articles"   = list("articletype"  = "epi-article"))}.
+Any parameters not nested under one of the tables \code{articles},
+\code{sections}, \code{items}, \code{properties}, \code{links},
+\code{footnotes} or \code{projects} are passed to the first (root)
+\code{db_table} call.
 }

@@ -4,13 +4,18 @@
 \alias{api_silent}
 \title{Set silent mode}
 \usage{
-api_silent(silent = F)
+api_silent(silent = F, verbose = F)
 }
 \arguments{
-\item{silent}{Boolen}
+\item{silent}{Boolean}
+
+\item{verbose}{Boolean}
 }
 \description{
 In silent mode, all user prompts are automatically confirmed.
 Be careful, this will skip the prompt to confirm operations
 on the live server.
+}
+\details{
+In verbose mode, debug messages will be printed.
 }

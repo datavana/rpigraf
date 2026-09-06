@@ -52,3 +52,6 @@ rsconnect/
 /doc/
 /Meta/
 docs
+
+# Private files
+private/*

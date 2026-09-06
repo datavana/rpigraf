@@ -74,6 +74,9 @@ db_fetch <- function(table, params=list(), db = NA) {
 
   # Merge base query conditions with any table-specific extra conditions.
   merge_params <- function(base, tbl) {
+    if (is.null(table_params[[tbl]])) {
+      return (base)
+    }
     merge_lists(list(base, table_params[[tbl]]))
   }
 

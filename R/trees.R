@@ -110,43 +110,43 @@ tree_add_mptt <- function(data) {
 
     p(message = paste0("Level ", level))
 
-    descendants <- data %>%
-      dplyr::filter(.data$tree_level == .env$level) %>%
-      dplyr::mutate(tree_descendants = .data$tree_descendants + 1) %>%
+    descendants <- data |>
+      dplyr::filter(.data$tree_level == .env$level) |>
+      dplyr::mutate(tree_descendants = .data$tree_descendants + 1) |>
       dplyr::group_by(.data$tree_thread,
-                      tree_id = .data$tree_parent) %>%
+                      tree_id = .data$tree_parent) |>
       dplyr::summarise(tree_tmp_descendants = sum(.data$tree_descendants),
-                       .groups = "keep") %>%
+                       .groups = "keep") |>
       dplyr::ungroup()
 
-    data <- data %>%
+    data <- data |>
       dplyr::left_join(descendants,
-                       by = c("tree_thread", "tree_id")) %>%
-      tidyr::replace_na(list(tree_tmp_descendants = 0)) %>%
+                       by = c("tree_thread", "tree_id")) |>
+      tidyr::replace_na(list(tree_tmp_descendants = 0)) |>
       dplyr::mutate(tree_descendants =
-                      .data$tree_descendants + .data$tree_tmp_descendants) %>%
+                      .data$tree_descendants + .data$tree_tmp_descendants) |>
       dplyr::select(-.data$tree_tmp_descendants)
   }
 
   # Add left / right values
-  data <- data %>%
-    dplyr::group_by(.data$tree_thread, .data$tree_parent) %>%
-    dplyr::arrange(.data$tree_order) %>%
-    dplyr::mutate(tree_no = dplyr::row_number()) %>%
+  data <- data |>
+    dplyr::group_by(.data$tree_thread, .data$tree_parent) |>
+    dplyr::arrange(.data$tree_order) |>
+    dplyr::mutate(tree_no = dplyr::row_number()) |>
     dplyr::mutate(
       tree_rgt = 1 +
         cumsum(.data$tree_descendants) * 2 +
         (2 * (.data$tree_no - 1)) + 1
-    ) %>%
+    ) |>
     dplyr::mutate(
       tree_lft = .data$tree_rgt - 2 * .data$tree_descendants - 1
-    ) %>%
-    dplyr::ungroup() %>%
+    ) |>
+    dplyr::ungroup() |>
     dplyr::select(-.data$tree_descendants)
 
   # Bubble parent offsets down the tree
   level <- minlevel
-  parents <- data %>%
+  parents <- data |>
     dplyr::filter(.data$tree_level == .env$minlevel)
 
   while (nrow(parents) > 0) {
@@ -154,7 +154,7 @@ tree_add_mptt <- function(data) {
     p(message = paste0("Level ", level))
     level <- level + 1
 
-    data <- data %>%
+    data <- data |>
       dplyr::left_join(
         dplyr::select(
           parents,
@@ -163,23 +163,23 @@ tree_add_mptt <- function(data) {
           tree_parent_lft = .data$tree_lft
         ),
         by = c("tree_thread", "tree_parent" = "tree_id")
-      ) %>%
-      tidyr::replace_na(list(tree_parent_lft = 0)) %>%
+      ) |>
+      tidyr::replace_na(list(tree_parent_lft = 0)) |>
       dplyr::mutate(
         tree_lft = .data$tree_lft + .data$tree_parent_lft,
         tree_rgt = .data$tree_rgt + .data$tree_parent_lft
-      ) %>%
+      ) |>
       dplyr::select(-.data$tree_parent_lft)
 
-    parents <- data %>%
+    parents <- data |>
       dplyr::semi_join(
         parents,
         by = c("tree_thread", "tree_parent" = "tree_id")
       )
   }
 
-  data %>%
-    dplyr::arrange(.data$tree_thread, .data$tree_lft) %>%
+  data |>
+    dplyr::arrange(.data$tree_thread, .data$tree_lft) |>
     dplyr::select(dplyr::starts_with("tree_"), dplyr::everything())
 }
 
@@ -271,7 +271,7 @@ tree_add_ancestor <- function(data, level = 0, col_id, col_parent_id, col_path) 
   target <- target[target$tree_level == level, c(rlang::as_name(col_id), rlang::as_name(col_path))]
   colnames(target) <- c("ancestor_id", "ancestor_path")
 
-  data %>%
+  data |>
     dplyr::distinct() |>
     tree_stack_ancestors(!!col_id, !!col_parent_id, "ancestor_id") |>
     dplyr::inner_join(target, by = "ancestor_id")
@@ -341,15 +341,20 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack, ancestor.c
   col_stack <- rlang::ensym(col_stack)
 
 
-  # Prepare temporary columns (for easier joins)
-  data <- dplyr::mutate(data,.tree_id = !!col_id)
-  data <- dplyr::mutate(data,.tree_parent = !!col_parent)
+  # Work on a distinct edge list so duplicate rows in `data`
+  # don't multiply during the (many-to-many) joins below.
+  tree <- data |>
+    dplyr::transmute(
+      .tree_id     = !!col_id,
+      .tree_parent = !!col_parent
+    ) |>
+    dplyr::distinct()
 
   # Put items themselves on the stack
-  data_stacked <- dplyr::mutate(data, .tree_main=.data$.tree_id)
+  data_stacked <- dplyr::mutate(tree, .tree_main=.data$.tree_id)
 
   # Init parents (.tree_main is the parent id)
-  data_parents <- data |>
+  data_parents <- tree |>
     dplyr::filter(!is.na(.data$.tree_parent)) |>
     dplyr::mutate(.tree_main=.data$.tree_parent)
 
@@ -369,27 +374,38 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack, ancestor.c
     # Find parents
     data_parents <- data_parents |>
       dplyr::inner_join(
-        dplyr::select(data, tidyselect::all_of(c(".tree_id", ".tree_main" = ".tree_parent"))),
+        dplyr::select(tree, tidyselect::all_of(c(".tree_id", ".tree_main" = ".tree_parent"))),
         by=c(".tree_main"=".tree_id")
       ) |>
       dplyr::filter(!is.na(.data$.tree_main.y)) |>
       dplyr::mutate(.tree_main = .data$.tree_main.y) |>
-      # TODO: Does this work?
       dplyr::select(-tidyselect::all_of(".tree_main.y"))
 
   }
 
+  # By now, `data_stacked` holds the columns .tree_id, .tree_parent, ad .tree_main.
+  # If requested, join more ancestor columns.
+
   if (length(ancestor.cols) > 0) {
-    ancestor.cols <- c(".tree_id", ancestor.cols)
-    ancestors <- data[ , ancestor.cols, drop=FALSE]
-    ancestors <- ancestors[!duplicated(ancestors$.tree_id), ]
+    ancestors <- data |>
+      dplyr::mutate(.tree_id = !!col_id) |>
+      dplyr::select(tidyselect::all_of(c(".tree_id", ancestor.cols)))
+
+    ancestors <- ancestors[!duplicated(ancestors$.tree_id), , drop =FALSE]
     colnames(ancestors) <- paste0("ancestor.", colnames(ancestors))
     data_stacked <- dplyr::left_join(data_stacked, ancestors, by = c(".tree_main" = "ancestor..tree_id"))
   }
 
+  # Join the original data (duplicates included)
+  data <- data |>
+    dplyr::mutate(.tree_id = !!col_id) |>
+    dplyr::left_join(data_stacked, by = ".tree_id", relationship = "many-to-many")
+
   # Remove columns and return data
-  data_stacked |>
+  data <- data |>
     dplyr::select(-tidyselect::all_of(c(".tree_id",".tree_parent"))) |>
     dplyr::mutate(!!col_stack := .data$.tree_main) |>
     dplyr::select(-tidyselect::all_of(".tree_main"))
+
+  data
 }
