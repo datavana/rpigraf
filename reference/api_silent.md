@@ -7,11 +7,19 @@ server.
 ## Usage
 
 ``` r
-api_silent(silent = F)
+api_silent(silent = F, verbose = F)
 ```
 
 ## Arguments
 
 - silent:
 
-  Boolen
+  Boolean
+
+- verbose:
+
+  Boolean
+
+## Details
+
+In verbose mode, debug messages will be printed.

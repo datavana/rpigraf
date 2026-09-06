@@ -58,7 +58,9 @@
 
 
 <dt id="arg-params">params<a class="anchor" aria-label="anchor" href="#arg-params"></a></dt>
-<dd><p>A named list of query conditions, passed to db_table.</p></dd>
+<dd><p>A named list of query conditions, passed to db_table.
+May contain sublists named by a table name to route conditions
+to that table.</p></dd>
 
 
 <dt id="arg-db">db<a class="anchor" aria-label="anchor" href="#arg-db"></a></dt>
@@ -66,6 +68,17 @@
 Provide a character vector of dababase names to get and row bind data from multiple databases.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Params may contain sublists named by a table name to target conditions at a
+specific table, e.g.
+<code>params = list("properties" = list("propertytype" = "fonttypes"),
+                    "articles"   = list("articletype"  = "epi-article"))</code>.
+Any parameters not nested under one of the tables <code>articles</code>,
+<code>sections</code>, <code>items</code>, <code>properties</code>, <code>links</code>,
+<code>footnotes</code> or <code>projects</code> are passed to the first (root)
+<code>db_table</code> call.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
