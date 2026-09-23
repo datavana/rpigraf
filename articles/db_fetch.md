@@ -35,7 +35,10 @@ See the api_fetch vignette for an explanation of the examples.
 
 ``` r
 
+
 distill_articles(epi, c("signature", "name"))
+
+distill_articles(epi, c("signature", "name"), project.cols = c("name", "signature"))
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 
