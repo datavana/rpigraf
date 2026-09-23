@@ -12,7 +12,8 @@ distill_articles(
   section.cols = c(),
   item.type = NULL,
   item.cols = c(),
-  property.cols = c()
+  property.cols = c(),
+  project.cols = c()
 )
 ```
 
@@ -46,6 +47,10 @@ distill_articles(
 - property.cols:
 
   Cols to join from the property.
+
+- project.cols:
+
+  Cols to join from the project.
 
 ## Value
 
