@@ -100,9 +100,9 @@ db_fetch <- function(table, params=list(), db = NA) {
     df_items$properties_id <- NULL
     df <- bind_rows_char(list(df, df_items))
 
-    items_props <- df_items[!is.na(df_items$property),]$property
-    if (length(items_props) > 0) {
-      df_props <- db_table("properties", merge_params(list("id" = items_props), "properties"), db = db, compact = TRUE)
+    props_id <- df_items[!is.na(df_items$property),]$property
+    if (length(props_id) > 0) {
+      df_props <- db_table("properties", merge_params(list("id" = props_id), "properties"), db = db, compact = TRUE)
       df <- bind_rows_char(list(df, df_props))
     }
 
@@ -112,14 +112,18 @@ db_fetch <- function(table, params=list(), db = NA) {
     df_links <- db_table("links", merge_params(list("root_tab" = "articles", "root_id" = df_root$id), "links"), db = db, compact = TRUE)
     df <- bind_rows_char(list(df, df_links))
 
-    links_props <- dplyr::filter(df_links, .data$to_tab == "properties", !is.na(.data$to_id))
-    if (nrow(links_props) > 0) {
-      df_props <- db_table("properties", merge_params(list("id" = links_props$to_id), "properties"), db = db, compact = TRUE)
+    props_id <- dplyr::filter(df_links, .data$to_tab == "properties", !is.na(.data$to_id))
+    props_id <- props_id$to_id
+    if (length(props_id) > 0) {
+      df_props <- db_table("properties", merge_params(list("id" = props_id), "properties"), db = db, compact = TRUE)
       df <- bind_rows_char(list(df, df_props))
     }
 
-    df_projects <- db_table("projects", merge_params(list("id" = df_root$project), "projects"), db = db, compact = TRUE)
-    df <- bind_rows_char(list(df, df_projects))
+    projects_id <- na.omit(df_root$project)
+    if (length(projects_id) > 0) {
+      df_projects <- db_table("projects", merge_params(list("id" = projects_id), "projects"), db = db, compact = TRUE)
+      df <- bind_rows_char(list(df, df_projects))
+    }
 
   }
 
