@@ -37,7 +37,6 @@ The result contains rows from the RAM tables (projects, articles, sections etc.)
 ```{r eval=FALSE}
 
 epi <- db_fetch("articles", db = "epi_movies")
-
 ```
 
 ### Map RAM data to articles and their annotations
@@ -53,7 +52,10 @@ See the api_fetch vignette for an explanation of the examples.
 
 #### The article perspective
 ```{r eval=FALSE}
+
 distill_articles(epi, c("signature", "name"))
+
+distill_articles(epi, c("signature", "name"), project.cols = c("name", "signature"))
 
 distill_articles(epi, c("name","signature"), item.type = "text", item.cols = "content")
 

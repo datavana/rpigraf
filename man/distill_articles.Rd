@@ -11,7 +11,8 @@ distill_articles(
   section.cols = c(),
   item.type = NULL,
   item.cols = c(),
-  property.cols = c()
+  property.cols = c(),
+  project.cols = c()
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ Set to NULL to get all items.}
 \item{item.cols}{Cols to join from the items.}
 
 \item{property.cols}{Cols to join from the property.}
+
+\item{project.cols}{Cols to join from the project.}
 }
 \value{
 A tibble with articles.

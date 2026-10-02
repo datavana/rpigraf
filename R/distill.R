@@ -11,11 +11,33 @@
 #' @param item.type Item types to join.
 #' @param item.cols Cols to join from the items.
 #' @param property.cols Cols to join from the property.
+#' @param project.cols Cols to join from the project.
 #' @return A tibble with articles.
 #' @export
-distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =c(), item.type = NULL, item.cols = c(), property.cols = c()) {
-  cases <- df[df$table == "articles", unique(c("id","type","norm_iri", cols))]
+distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =c(), item.type = NULL, item.cols = c(), property.cols = c(), project.cols = c()) {
+
+  id.cols <- c("id", "type", "norm_iri")
+  article.cols <- cols
+
+  cases <- df[df$table == "articles", unique(c(id.cols, article.cols, "project"))]
   cases <- dplyr::distinct(cases)
+
+  if ("project" %in% colnames(cases))  {
+    cases$projects.id <- cases$project
+    cases$project <- NULL
+  }
+
+
+  if (length(project.cols) > 0) {
+    projects <- epi_extract_long(df, "projects")
+    projects <- projects[, paste0("projects.", unique(c("id", project.cols))),drop = FALSE]
+
+    if ((nrow(projects) > 0) && (nrow(cases) > 0)) {
+      cases <- dplyr::left_join(cases, projects, by = c("projects.id"))
+      article.cols <- unique(c(article.cols, paste0("projects.",project.cols)))
+    }
+  }
+
 
   extract.cols <- c()
   if (length(section.cols) > 0) {
@@ -29,36 +51,47 @@ distill_articles <- function(df, cols = c(), section.type = NULL, section.cols =
   }
 
   if (length(extract.cols) > 0) {
+
     items <- epi_extract_long(df, "items", item.type)
+
+    if ("items.property" %in% colnames(items))  {
+      items$properties.id <- items$items.property
+      items$items.property <- NULL
+    }
+    if ("items.sections_id" %in% colnames(items))  {
+      items$sections.id <- items$items.sections_id
+      items$items.sections_id <- NULL
+    }
+    if ("items.articles_id" %in% colnames(items))  {
+      items$articles.id <- items$items.articles_id
+      items$items.articles_id <- NULL
+    }
 
     if (!missing(property.cols)) {
       props <- epi_extract_long(df, "properties")
       if ((nrow(props) > 0) && (nrow(items) > 0)) {
-        items <- dplyr::left_join(items,props, by = c("items.property" = "properties.id"))
+        items <- dplyr::left_join(items, props, by = c("properties.id"))
       }
     }
 
     if (!missing(section.cols)) {
-
       sections <- epi_extract_long(df, "sections", section.type)
-
       if ((nrow(sections) > 0) && (nrow(items) > 0)) {
-        items <- dplyr::inner_join(sections, items, by = c("sections.id" = "items.sections_id"))
+        items <- dplyr::inner_join(sections, items, by = c("sections.id"))
       }
     }
 
-    items <- items[, c("items.articles_id", extract.cols),drop = FALSE]
-    #colnames(items) <- c("items.articles_id","value")
+    items <- items[, c("articles.id", extract.cols),drop = FALSE]
 
     items <- items |>
       dplyr::mutate(dplyr::across(tidyselect::any_of(extract.cols), ~ stringr::str_replace_all(.x,"&amp;","&"))) |>
       dplyr::mutate(dplyr::across(tidyselect::any_of(extract.cols), ~ stringr::str_replace_all(.x,"&x2f;","&")))
 
-    cases <- dplyr::full_join(cases, items, by=c("id" = "items.articles_id"))
-    cases <- cases[,c(cols, extract.cols, "id", "type", "norm_iri")]
+    cases <- dplyr::full_join(cases, items, by=c("id" = "articles.id"))
   }
 
-  cases <- move_cols_to_end(cases, c("id", "type", "norm_iri"))
+  cases <- cases[,c(article.cols, extract.cols, id.cols)]
+  cases <- move_cols_to_end(cases, id.cols)
   cases
 }
 
