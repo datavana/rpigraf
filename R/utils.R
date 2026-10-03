@@ -133,8 +133,8 @@ abc2num <- function(s, base = 26) {
   chars <- strsplit(s, NULL)[[1]]
   digits <- match(chars, letters) - 1  # 0-index
   n <- length(digits)
-  offset <- if(n > 1) sum(base ^ seq(0, n-2)) else 0
-  number <- sum(digits * base ^ rev(seq(0, n-1)))
+  offset <- if (n > 1) sum(base ^ seq(1, n - 1)) else 0
+  number <- sum(digits * base ^ rev(seq(0, n - 1)))
   number + offset + 1
 }
 
