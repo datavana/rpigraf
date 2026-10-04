@@ -139,15 +139,15 @@ epi_is_irifragment <- function(value) {
 #' Get the IRI fragment of an IRI path
 #'
 #' @param id An IRI path
-#' @param prefix A prefix added to the IRI fragment, if the ID is not NULL.
+#' @param postfix A postfix added to the IRI fragment, if the ID is not NULL.
 #' @return The IRI fragment
-epi_iri_parent <- function(id = NULL, prefix = "~") {
+epi_iri_parent <- function(id = NULL, postfix = "~") {
   if (missing(id)) {
     parent <- ""
   } else {
     id <- strsplit(id, "/", fixed=T)
     parent <- sapply(id, function(x) utils::tail(x, 1))
-    parent <- paste0(parent, prefix)
+    parent <- paste0(parent, postfix)
   }
   parent
 }
