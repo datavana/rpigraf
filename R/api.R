@@ -312,6 +312,7 @@ api_job_execute <- function(job_id) {
 #' @param maxpages Maximum number of pages to request.
 #'                 Set to 1 for non-paginated tables.
 #' @param compact Whether to rename type columns to `type` and to add a `table` and a `database` column.
+#'                Also reduces the data set to distinct rows.
 #' @param silent Whether to output status messages
 #' @export
 api_table <- function(endpoint, params=c(), db = NA, maxpages=1, compact = FALSE, silent=FALSE) {
@@ -423,7 +424,7 @@ api_table <- function(endpoint, params=c(), db = NA, maxpages=1, compact = FALSE
     data <- suppressMessages(readr::type_convert(data))
   }
 
-  .to_epitable(data, c("endpoint"=endpoint, "params"=params, "db"=db))
+  .to_epitable(data, c("endpoint"=endpoint, "params"=params, "db"=db), distinct = compact)
 }
 
 
@@ -747,7 +748,8 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
 #'
 #' @param data A tibble
 #' @param source A named vector of source parameters, containing endpount, parameters and database name
-.to_epitable <- function(data, source=NULL) {
+#' @param distinct Whether to return distinct rows only.
+.to_epitable <- function(data, source=NULL, distinct = FALSE) {
   if (!is.null(source)) {
     attr(data, "source") <- source
   }
@@ -768,6 +770,10 @@ api_patch <- function(data, db, table=NA, type=NA, wide=T) {
     dplyr::all_of(state_cols)
   )
 
+
+  if (distinct) {
+    data <- dplyr::distinct(data)
+  }
 
   class(data) <- c("epi_tbl", setdiff(class(data), "epi_tbl"))
   data
