@@ -25,7 +25,8 @@ In this case, the compact parameter is automatically set to TRUE. Thus, a databa
 \item{maxpages}{Maximum number of pages to request.
 Set to 1 for non-paginated tables.}
 
-\item{compact}{Whether to rename type columns to \code{type} and to add a \code{table} and a \code{database} column.}
+\item{compact}{Whether to rename type columns to \code{type} and to add a \code{table} and a \code{database} column.
+Also reduces the data set to distinct rows.}
 
 \item{silent}{Whether to output status messages}
 }

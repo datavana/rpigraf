@@ -4,12 +4,14 @@
 \alias{.to_epitable}
 \title{Add the epi_tbl class and make it remember its source}
 \usage{
-.to_epitable(data, source = NULL)
+.to_epitable(data, source = NULL, distinct = FALSE)
 }
 \arguments{
 \item{data}{A tibble}
 
 \item{source}{A named vector of source parameters, containing endpount, parameters and database name}
+
+\item{distinct}{Whether to return distinct rows only.}
 }
 \description{
 Add the epi_tbl class and make it remember its source

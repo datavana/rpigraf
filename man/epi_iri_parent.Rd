@@ -4,12 +4,12 @@
 \alias{epi_iri_parent}
 \title{Get the IRI fragment of an IRI path}
 \usage{
-epi_iri_parent(id = NULL, prefix = "~")
+epi_iri_parent(id = NULL, postfix = "~")
 }
 \arguments{
 \item{id}{An IRI path}
 
-\item{prefix}{A prefix added to the IRI fragment, if the ID is not NULL.}
+\item{postfix}{A postfix added to the IRI fragment, if the ID is not NULL.}
 }
 \value{
 The IRI fragment
