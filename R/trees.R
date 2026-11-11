@@ -256,6 +256,33 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
 }
 
 
+#' Add parent IDs to a tree data frame
+#'
+#' Given a data frame containing tree nodes in depth-first (preorder) order,
+#' with an ID column and a numeric level column, this function adds a
+#' `parent_id` column that identifies the parent of each node.
+#'
+#' The algorithm uses a stack to keep track of ancestors. When the level
+#' increases, the current parent is the previous item on the stack. When the
+#' level decreases, the stack is popped until the appropriate ancestor is
+#' found. This assumes the rows are in tree order (e.g., as produced by a
+#' depth-first traversal).
+#'
+#' @param df A data frame containing tree nodes.
+#' @param idcol Name of the column containing node IDs.
+#' @param levelcol Name of the column containing numeric levels (depth).
+#'
+#' @return A data frame with an additional column `parent_id`.
+#'
+#' @examples
+#' df <- data.frame(
+#'   id    = c("A", "B", "C", "D", "E"),
+#'   level = c(1, 2, 3, 2, 1),
+#'   value = c(10, 20, 30, 40, 50)
+#' )
+#' tree_add_parents(df, "id", "level")
+#'
+#' @export
 tree_add_parent <- function(df, idcol, levelcol) {
   ids <- df[[idcol]]
   lev <- df[[levelcol]]
