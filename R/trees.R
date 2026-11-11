@@ -327,36 +327,52 @@ tree_add_parent <- function(df, idcol, levelcol) {
   df
 }
 
-#' Move nodes in a tree.
+#' Move nodes in a tree
 #'
-#' Restructures a tree by updating parent_id fields
-#' and adding missing nodes based on move operations.
-#' The move operations are defined by the current path and a target path.
+#' Restructures a tree by updating `parent_id` fields and adding missing nodes
+#' based on move operations. Move operations are defined by a current path and
+#' a target path.
 #'
-#' @param data A dataframe with the current tree.
-#'        The columns id, parent_id, lemma are necessary.
-#'        For move operations crossing tree types, provide a type column.
-#'        Other columns are allowed and preserved in the output.
-#' @param moves A dataframe with the two columns from_path and to_path.
-#'              Optionally, a to_type column can be provided to move nodes to a different tree type.
-#' @param keep Whether to keep the columns from_path and to_path in the resulting dataframe (TRUE) or to drop them (FALSE).
-#' @param delim The delimiter to use for the tree path (default is ">").
-#' @return A dataframe with updated parent IDs, based on the move operations.
-#'         Missing parent nodes are created.
+#' @param data A data frame with the current tree. The columns `id`, `parent_id`,
+#'   and `lemma` are necessary. For move operations crossing tree types, provide
+#'   a `type` column. Other columns are allowed and preserved in the output.
+#' @param moves A data frame with the two columns `from_path` and `to_path`.
+#'   Optionally, a `to_type` column can be provided to move nodes to a different
+#'   tree type.
+#' @param keep Whether to keep the columns `from_path` and `to_path` in the
+#'   resulting data frame (TRUE) or to drop them (FALSE).
+#' @param delim The delimiter to use for the tree path (default is `">"`).
+#'
+#' @return A data frame with updated parent IDs, based on the move operations.
+#'   Missing parent nodes are created.
+#'
+#' @examples
+#' data <- data.frame(
+#'   id        = c("A", "B", "C"),
+#'   parent_id = c(NA, "A", "B"),
+#'   lemma     = c("A", "B", "C"),
+#'   type      = "example"
+#' )
+#' moves <- data.frame(
+#'   from_path = "A > B",
+#'   to_path   = "X > Y > B"
+#' )
+#' tree_move(data, moves)
+#'
+#' @importFrom rlang .data
+#' @export
 tree_move <- function(data, moves, keep = FALSE, delim = ">") {
 
-  #
-  # 1. Checks
-  #
+  # Checks
 
   stopifnot(
-    "Moves must contain at least the columns from_path and to_path"=
-      all(c('from_path', 'to_path') %in% names(moves))
+    "Moves must contain at least the columns from_path and to_path" =
+      all(c("from_path", "to_path") %in% names(moves))
   )
 
   stopifnot(
-    "Data must contain at least the columns id, parent_id, and lemma"=
-      all(c('id', 'parent_id', 'lemma') %in% names(data))
+    "Data must contain at least the columns id, parent_id, and lemma" =
+      all(c("id", "parent_id", "lemma") %in% names(data))
   )
 
   # Add type columns if necessary
@@ -369,7 +385,7 @@ tree_move <- function(data, moves, keep = FALSE, delim = ">") {
   }
 
   stopifnot(
-    "Data must only contain nodes of the same type"=
+    "Data must only contain nodes of the same type" =
       length(unique(data$type)) == 1
   )
 
@@ -377,85 +393,84 @@ tree_move <- function(data, moves, keep = FALSE, delim = ">") {
   data <- tree_add_path(data, id, parent_id, lemma, delim)
 
   stopifnot(
-    "Tree paths in the data must be unique"=
+    "Tree paths in the data must be unique" =
       length(unique(data$tree_path)) == nrow(data)
   )
 
-  #
   # 2. Create nodes with paths that don't exist
-  #
 
   to_create <- moves %>%
-    select(tree_path = to_path, type = to_type) %>%
-    filter(!is.na(tree_path)) %>%
-    anti_join(data, by = c("tree_path", "type"))
+    dplyr::select(tree_path = .data$to_path, type = .data$to_type) %>%
+    dplyr::filter(!is.na(.data$tree_path)) %>%
+    dplyr::anti_join(data, by = c("tree_path", "type"))
 
-  new <- tibble()
+  new <- tibble::tibble()
 
-  while(nrow(to_create) > 0) {
+  while (nrow(to_create) > 0) {
 
-    # Go up one level in to_path column
+    # Go up one level in to_path column using the helper
+    # Note: use bare column name, not .data$tree_path, because tree_split_path
+    # captures the column name with tidy evaluation
     to_create <- to_create %>%
+      tree_split_path(tree_path, delim)
 
-      mutate(
-        parts  = strsplit(tree_path, delim, fixed = TRUE),
-        parts  = lapply(parts, trimws),
-        lemma  = vapply(parts, function(x) tail(x, 1L), character(1)),
-        parent_path = vapply(parts, function(x) {
-          if (length(x) == 1L) NA_character_ else paste(x[-length(x)], collapse = paste0(" ", delim, " "))
-        }, character(1))
-      ) %>%
-      select(-parts)
-
-    # Resulting columns: tree_path, type, lemma, parent_path
-    new <- bind_rows(new, to_create)
+    # Resulting columns: tree_path, type, tree_lemma, tree_parent
+    new <- dplyr::bind_rows(new, to_create)
 
     to_create <- to_create %>%
-      select(tree_path = parent_path, type)
-    filter(!is.na(tree_path)) %>%
-      anti_join(data, by = c("tree_path", "type")) %>%
-      anti_join(new, by = c("tree_path", "type"))
-
+      dplyr::select(tree_path = .data$tree_parent, type = .data$type) %>%
+      dplyr::filter(!is.na(.data$tree_path)) %>%
+      dplyr::anti_join(data, by = c("tree_path", "type")) %>%
+      dplyr::anti_join(new, by = c("tree_path", "type"))
   }
 
-  #
   # 3. Join old and new
-  #
 
   new <- new %>%
-    mutate(
-      norm_iri = paste0("tidy~", epi_clean_irifragment(tree_path)),
-      id = paste0("properties/", type, "/" , norm_iri),
+    dplyr::mutate(
+      norm_iri = paste0("tidy~", epi_clean_irifragment(.data$tree_path)),
+      id = paste0("properties/", .data$type, "/", .data$norm_iri)
     ) %>%
-    select(id, norm_iri, tree_path, to_type = type, to_parent = parent_path, to_lemma = lemma)
-
-  data <- data %>%
-    left_join(
-      select(moves, from_path, to_type, to_parent, to_lemma),
-      by = c("tree_path" = "from_path")
+    dplyr::select(
+      .data$id, .data$norm_iri, .data$tree_path,
+      to_type = .data$type,
+      to_parent = .data$tree_parent,
+      to_lemma = .data$tree_lemma
     )
 
-  data <- bind_rows(new, data)
+  # Prepare moves with to_parent and to_lemma
+  moves <- moves %>%
+    tree_split_path(to_path, delim) %>%
+    dplyr::select(.data$from_path, .data$to_type, to_parent = .data$tree_parent, to_lemma = .data$tree_lemma)
 
-  #
-  # 4. Update fields
-  #
   data <- data %>%
-    mutate(
-      lemma = dplyr::coalesce(to_lemma, lemma),
-      type = dplyr::coalesce(to_type, type),
+    dplyr::left_join(moves, by = c("tree_path" = "from_path"))
+
+  data <- dplyr::bind_rows(new, data)
+
+  # 4. Update fields
+
+  data <- data %>%
+    dplyr::mutate(
+      lemma = dplyr::coalesce(.data$to_lemma, .data$lemma),
+      type  = dplyr::coalesce(.data$to_type, .data$type)
     ) %>%
-    left_join(
-      select(data, to_parent_id = id, tree_path),
+    dplyr::left_join(
+        dplyr::select(data, to_parent_id = .data$id, tree_path = .data$tree_path),
       by = c("to_parent" = "tree_path")
     ) %>%
-    mutate(
-      parent_id = dplyr::coalesce(to_parent_id, parent_id)
+    dplyr::mutate(
+      parent_id = dplyr::coalesce(.data$to_parent_id, .data$parent_id)
     )
 
-  data
+  # Drop move columns if keep = FALSE
+  if (!keep) {
+    data <- dplyr::select(data, -dplyr::any_of(c("from_path", "to_path")))
+  }
 
+  data
 }
+
 
 #' Add ancestor id and path from a specific level to all children
 #'
@@ -613,4 +628,38 @@ tree_stack_ancestors <- function(data, col_id, col_parent, col_stack, ancestor.c
     dplyr::select(-tidyselect::all_of(".tree_main"))
 
   data
+}
+
+
+#' Split a tree path column into lemma and parent_path
+#'
+#' Internal helper that splits a path column (e.g. `"A > B > C"`) into
+#' the last element (`tree_lemma`) and the remainder (`tree_parent`).
+#'
+#' @keywords internal
+#'
+#' @param data A data frame.
+#' @param path_col Column containing tree paths (quoted or unquoted).
+#' @param delim Delimiter (default `">"`).
+#'
+#' @return A data frame with additional columns `tree_lemma` and `tree_parent`.
+#'
+#' @importFrom rlang .data
+tree_split_path <- function(data, path_col, delim = ">") {
+  path_col <- rlang::enquo(path_col)
+
+  data %>%
+    dplyr::mutate(
+      parts  = strsplit(!!path_col, delim, fixed = TRUE),
+      parts  = lapply(.data$parts, trimws),
+      tree_lemma  = vapply(.data$parts, function(x) tail(x, 1L), character(1)),
+      tree_parent = vapply(.data$parts, function(x) {
+        if (length(x) == 1L) {
+          NA_character_
+        } else {
+          paste(x[-length(x)], collapse = paste0(" ", delim, " "))
+        }
+      }, character(1))
+    ) %>%
+    dplyr::select(-.data$parts)
 }
