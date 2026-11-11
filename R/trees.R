@@ -339,7 +339,7 @@ tree_add_parent <- function(df, idcol, levelcol) {
 #' @param moves A data frame with the two columns `from_path` and `to_path`.
 #'   Optionally, a `to_type` column can be provided to move nodes to a different
 #'   tree type.
-#' @param keep Whether to keep the columns `from_path` and `to_path` in the
+#' @param keep Whether to keep the columns `from_path` and `tree_path` in the
 #'   resulting data frame (TRUE) or to drop them (FALSE).
 #' @param delim The delimiter to use for the tree path (default is `">"`).
 #'
@@ -361,7 +361,7 @@ tree_add_parent <- function(df, idcol, levelcol) {
 #'
 #' @importFrom rlang .data
 #' @export
-tree_move <- function(data, moves, keep = FALSE, delim = ">") {
+tree_move <- function(data, moves, keep = TRUE, delim = ">") {
 
   # Checks
 
@@ -376,18 +376,18 @@ tree_move <- function(data, moves, keep = FALSE, delim = ">") {
   )
 
   # Add type columns if necessary
-  if (!"to_type" %in% names(moves)) {
-    moves$to_type <- NA
-  }
-
   if (!"type" %in% names(data)) {
-    data$type <- NA
+    data$type <- ""
   }
 
   stopifnot(
     "Data must only contain nodes of the same type" =
       length(unique(data$type)) == 1
   )
+
+  if (!"to_type" %in% names(moves)) {
+    moves$to_type <- data$type[1]
+  }
 
   # Add tree_path to current data
   data <- tree_add_path(data, id, parent_id, lemma, delim)
@@ -429,7 +429,7 @@ tree_move <- function(data, moves, keep = FALSE, delim = ">") {
   new <- new %>%
     dplyr::mutate(
       norm_iri = paste0("tidy~", epi_clean_irifragment(.data$tree_path)),
-      id = paste0("properties/", .data$type, "/", .data$norm_iri)
+      id = ifelse(.data$type == "", .data$norm_iri, paste0("properties/", .data$type, "/", .data$norm_iri))
     ) %>%
     dplyr::select(
       .data$id, .data$norm_iri, .data$tree_path,
@@ -460,12 +460,20 @@ tree_move <- function(data, moves, keep = FALSE, delim = ">") {
       by = c("to_parent" = "tree_path")
     ) %>%
     dplyr::mutate(
-      parent_id = dplyr::coalesce(.data$to_parent_id, .data$parent_id)
+      parent_id = dplyr::coalesce(.data$to_parent_id, .data$parent_id),
+      from_path = .data$tree_path
     )
 
   # Drop move columns if keep = FALSE
+  data <- dplyr::select(data, -dplyr::any_of(c("to_type","to_parent","to_lemma", "to_parent_id")))
+
+  data$from_path <- data$tree_path
+  data <- tree_add_path(data, id, parent_id, lemma, delim)
+  data <- dplyr::arrange(data, .data$tree_path)
+
   if (!keep) {
-    data <- dplyr::select(data, -dplyr::any_of(c("from_path", "to_path")))
+    data$tree_path  <- NULL
+    data$from_path  <- NULL
   }
 
   data
