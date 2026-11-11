@@ -194,8 +194,12 @@ tree_add_mptt <- function(data) {
 #' @param col_id The ID column of the node
 #' @param col_parent_id The ID column of the parent node
 #' @param col_lemma The column holding the node name that will be used for the path
-#' @param delim Character that glues together the path elements. Set to NULL to create a vector instead.
-#' @return A data frame with the additional column tree_path
+#' @param delim Character that glues together the path elements.
+#'              In the lemma column, the delimiter will be replaced by a html entity to prevent conflicts.
+#'              Set to NULL to create a vector of parent lemmas instead.
+#' @return A data frame with the additional column tree_path.
+#'        If it existed, it will be overwritten.
+#'        Delimiters will be replaced in the lemma column.
 #' @export
 #' @importFrom rlang .data
 #' @importFrom rlang :=
@@ -207,7 +211,7 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
   join_by_parent = rlang::set_names(rlang::quo_name(col_id), rlang::quo_name(col_parent_id))
 
 
-  # Escape slashes (or other characters used as delimiter) in lemmata
+  # Escape characters used as delimiters in lemmata
   delim_entity <- paste0("&x", charToRaw(delim),";")
   data <- data |>
     dplyr::mutate(!!col_lemma := stringr::str_replace_all(!!col_lemma, delim ,delim_entity))
@@ -251,6 +255,180 @@ tree_add_path <- function(data, col_id, col_parent_id, col_lemma, delim="/")  {
   return(data)
 }
 
+
+tree_add_parent <- function(df, idcol, levelcol) {
+  ids <- df[[idcol]]
+  lev <- df[[levelcol]]
+  n <- nrow(df)
+
+  # Make sure levels are numeric
+  if (!is.numeric(lev)) {
+    lev <- as.numeric(as.character(lev))
+  }
+  if (anyNA(lev)) {
+    stop("`levelcol` must contain numeric levels with no missing values.")
+  }
+
+  # parent_id vector with the same type as ids
+  parent_ids <- ids[rep(NA_integer_, n)]
+
+  # Stack of row indices for the current path
+  stack <- integer(n)
+  top <- 0L
+
+  for (i in seq_len(n)) {
+    cur_level <- lev[i]
+
+    # Pop ancestors that are not strictly above the current node
+    while (top > 0L && lev[stack[top]] >= cur_level) {
+      top <- top - 1L
+    }
+
+    # The top of the stack is the parent, if any
+    if (top > 0L) {
+      parent_ids[i] <- ids[stack[top]]
+    } else {
+      parent_ids[i] <- ids[NA_integer_]
+    }
+
+    # Push current row onto the stack
+    top <- top + 1L
+    stack[top] <- i
+  }
+
+  df[["parent_id"]] <- parent_ids
+  df
+}
+
+#' Move nodes in a tree.
+#'
+#' Restructures a tree by updating parent_id fields
+#' and adding missing nodes based on move operations.
+#' The move operations are defined by the current path and a target path.
+#'
+#' @param data A dataframe with the current tree.
+#'        The columns id, parent_id, lemma are necessary.
+#'        For move operations crossing tree types, provide a type column.
+#'        Other columns are allowed and preserved in the output.
+#' @param moves A dataframe with the two columns from_path and to_path.
+#'              Optionally, a to_type column can be provided to move nodes to a different tree type.
+#' @param keep Whether to keep the columns from_path and to_path in the resulting dataframe (TRUE) or to drop them (FALSE).
+#' @param delim The delimiter to use for the tree path (default is ">").
+#' @return A dataframe with updated parent IDs, based on the move operations.
+#'         Missing parent nodes are created.
+tree_move <- function(data, moves, keep = FALSE, delim = ">") {
+
+  #
+  # 1. Checks
+  #
+
+  stopifnot(
+    "Moves must contain at least the columns from_path and to_path"=
+      all(c('from_path', 'to_path') %in% names(moves))
+  )
+
+  stopifnot(
+    "Data must contain at least the columns id, parent_id, and lemma"=
+      all(c('id', 'parent_id', 'lemma') %in% names(data))
+  )
+
+  # Add type columns if necessary
+  if (!"to_type" %in% names(moves)) {
+    moves$to_type <- NA
+  }
+
+  if (!"type" %in% names(data)) {
+    data$type <- NA
+  }
+
+  stopifnot(
+    "Data must only contain nodes of the same type"=
+      length(unique(data$type)) == 1
+  )
+
+  # Add tree_path to current data
+  data <- tree_add_path(data, id, parent_id, lemma, delim)
+
+  stopifnot(
+    "Tree paths in the data must be unique"=
+      length(unique(data$tree_path)) == nrow(data)
+  )
+
+  #
+  # 2. Create nodes with paths that don't exist
+  #
+
+  to_create <- moves %>%
+    select(tree_path = to_path, type = to_type) %>%
+    filter(!is.na(tree_path)) %>%
+    anti_join(data, by = c("tree_path", "type"))
+
+  new <- tibble()
+
+  while(nrow(to_create) > 0) {
+
+    # Go up one level in to_path column
+    to_create <- to_create %>%
+
+      mutate(
+        parts  = strsplit(tree_path, delim, fixed = TRUE),
+        parts  = lapply(parts, trimws),
+        lemma  = vapply(parts, function(x) tail(x, 1L), character(1)),
+        parent_path = vapply(parts, function(x) {
+          if (length(x) == 1L) NA_character_ else paste(x[-length(x)], collapse = paste0(" ", delim, " "))
+        }, character(1))
+      ) %>%
+      select(-parts)
+
+    # Resulting columns: tree_path, type, lemma, parent_path
+    new <- bind_rows(new, to_create)
+
+    to_create <- to_create %>%
+      select(tree_path = parent_path, type)
+    filter(!is.na(tree_path)) %>%
+      anti_join(data, by = c("tree_path", "type")) %>%
+      anti_join(new, by = c("tree_path", "type"))
+
+  }
+
+  #
+  # 3. Join old and new
+  #
+
+  new <- new %>%
+    mutate(
+      norm_iri = paste0("tidy~", epi_clean_irifragment(tree_path)),
+      id = paste0("properties/", type, "/" , norm_iri),
+    ) %>%
+    select(id, norm_iri, tree_path, to_type = type, to_parent = parent_path, to_lemma = lemma)
+
+  data <- data %>%
+    left_join(
+      select(moves, from_path, to_type, to_parent, to_lemma),
+      by = c("tree_path" = "from_path")
+    )
+
+  data <- bind_rows(new, data)
+
+  #
+  # 4. Update fields
+  #
+  data <- data %>%
+    mutate(
+      lemma = dplyr::coalesce(to_lemma, lemma),
+      type = dplyr::coalesce(to_type, type),
+    ) %>%
+    left_join(
+      select(data, to_parent_id = id, tree_path),
+      by = c("to_parent" = "tree_path")
+    ) %>%
+    mutate(
+      parent_id = dplyr::coalesce(to_parent_id, parent_id)
+    )
+
+  data
+
+}
 
 #' Add ancestor id and path from a specific level to all children
 #'
