@@ -397,20 +397,32 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
       length(unique(data$tree_path)) == nrow(data)
   )
 
-  # 2. Create nodes with paths that don't exist
+  # 2. Create missing ancestor nodes of the target paths
 
-  to_create <- moves %>%
+  # Paths that will be occupied by moved nodes, they must not be created
+  targets <- moves %>%
+    dplyr::filter(!is.na(.data$from_path), !is.na(.data$to_path)) %>%
     dplyr::select(tree_path = .data$to_path, type = .data$to_type) %>%
+    dplyr::distinct()
+
+  # Start from the parent of each target path.
+  # Only if there is no from_path (pure creation) the target itself is created.
+  to_create <- moves %>%
+    tree_split_path(to_path, delim) %>%
+    dplyr::mutate(
+      tree_path = dplyr::if_else(is.na(.data$from_path), .data$to_path, .data$tree_parent)
+    ) %>%
+    dplyr::select(.data$tree_path, type = .data$to_type) %>%
     dplyr::filter(!is.na(.data$tree_path)) %>%
-    dplyr::anti_join(data, by = c("tree_path", "type"))
+    dplyr::distinct() %>%
+    dplyr::anti_join(data, by = c("tree_path", "type")) %>%
+    dplyr::anti_join(targets, by = c("tree_path", "type"))
 
   new <- tibble::tibble()
 
   while (nrow(to_create) > 0) {
 
-    # Go up one level in to_path column using the helper
-    # Note: use bare column name, not .data$tree_path, because tree_split_path
-    # captures the column name with tidy evaluation
+    # Go up one level
     to_create <- to_create %>%
       tree_split_path(tree_path, delim)
 
@@ -420,7 +432,9 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
     to_create <- to_create %>%
       dplyr::select(tree_path = .data$tree_parent, type = .data$type) %>%
       dplyr::filter(!is.na(.data$tree_path)) %>%
+      dplyr::distinct() %>%
       dplyr::anti_join(data, by = c("tree_path", "type")) %>%
+      dplyr::anti_join(targets, by = c("tree_path", "type")) %>%
       dplyr::anti_join(new, by = c("tree_path", "type"))
   }
 
@@ -474,6 +488,11 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
   if (!keep) {
     data$tree_path  <- NULL
     data$from_path  <- NULL
+  }
+
+  # Remove empty type
+  if (all(data$type == "")) {
+    data$type <- NULL
   }
 
   data
