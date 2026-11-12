@@ -5,7 +5,7 @@ Get the IRI fragment of an IRI path
 ## Usage
 
 ``` r
-epi_iri_parent(id = NULL, prefix = "~")
+epi_iri_parent(id = NULL, postfix = "~")
 ```
 
 ## Arguments
@@ -14,9 +14,9 @@ epi_iri_parent(id = NULL, prefix = "~")
 
   An IRI path
 
-- prefix:
+- postfix:
 
-  A prefix added to the IRI fragment, if the ID is not NULL.
+  A postfix added to the IRI fragment, if the ID is not NULL.
 
 ## Value
 

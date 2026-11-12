@@ -39,7 +39,7 @@ api_table(
 - compact:
 
   Whether to rename type columns to `type` and to add a `table` and a
-  `database` column.
+  `database` column. Also reduces the data set to distinct rows.
 
 - silent:
 
