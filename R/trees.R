@@ -402,7 +402,7 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
   unused <- dplyr::anti_join(moves, data, by = c("from_path" = "tree_path"))
   moves <- dplyr::semi_join(moves, data, by = c("from_path" = "tree_path"))
 
-  if (length(unused) > 0) {
+  if (nrow(unused) > 0) {
     message("Ignoring moves with unknown from_path: ", paste(unused$from_path, collapse = ", "))
   }
 
@@ -447,19 +447,9 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
       dplyr::anti_join(new, by = c("tree_path", "type"))
   }
 
+
   # 3. Join old and new
 
-  new <- new %>%
-    dplyr::mutate(
-      norm_iri = paste0("tidy~", epi_clean_irifragment(.data$tree_path)),
-      id = ifelse(.data$type == "", .data$norm_iri, paste0("properties/", .data$type, "/", .data$norm_iri))
-    ) %>%
-    dplyr::select(
-      .data$id, .data$norm_iri, .data$tree_path,
-      to_type = .data$type,
-      to_parent = .data$tree_parent,
-      to_lemma = .data$tree_lemma
-    )
 
   # Prepare moves with to_parent and to_lemma
   moves <- moves %>%
@@ -469,7 +459,22 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
   data <- data %>%
     dplyr::left_join(moves, by = c("tree_path" = "from_path"))
 
-  data <- dplyr::bind_rows(new, data)
+  if (nrow(new) > 0) {
+    new <- new %>%
+      dplyr::mutate(
+        norm_iri = paste0("tidy~", epi_clean_irifragment(.data$tree_path)),
+        id = ifelse(.data$type == "", .data$norm_iri, paste0("properties/", .data$type, "/", .data$norm_iri))
+      ) %>%
+      dplyr::select(
+        .data$id, .data$norm_iri, .data$tree_path,
+        to_type = .data$type,
+        to_parent = .data$tree_parent,
+        to_lemma = .data$tree_lemma
+      )
+
+    data <- dplyr::bind_rows(new, data)
+  }
+
 
   # 4. Update fields
 

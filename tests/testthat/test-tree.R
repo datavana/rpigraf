@@ -55,6 +55,38 @@ test_that("Unused move operations are ignored", {
 
 })
 
+
+
+test_that("Existing nodes are preserved", {
+
+  data <- tibble::tibble(
+    id        = c("A", "B", "C", "X1", "X2"),
+    parent_id = c(NA, "A", "B", NA, "B"),
+    lemma     = c("A", "B", "C", "X", "X")
+  )
+
+
+
+  moves <- data.frame(
+    from_path = "X",
+    to_path   = "A > B > X"
+  )
+
+  result <- tree_move(data, moves)
+
+  expected <- tibble::tribble(
+    ~id,     ~parent_id, ~lemma, ~tree_path,       ~from_path,
+    "A",               NA,         "A",  "A",      "A",
+    "B",              "A",        "B",  "A > B",   "A > B",
+    "C",         "B",        "C",   "A > B > C",   "A > B > C",
+    "X1",        "B",        "X",   "A > B > X",   "X",
+    "X2",        "B",        "X",   "A > B > X",   "A > B > X"
+  )
+  testthat::expect_equal(result, expected)
+
+})
+
+
 test_that("Type is preserved", {
 
   data <- data.frame(
