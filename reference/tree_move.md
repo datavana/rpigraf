@@ -53,7 +53,6 @@ moves <- data.frame(
   to_path   = "X > Y > B"
 )
 tree_move(data, moves)
-#> Ignoring moves with unknown from_path: 
 #> # A tibble: 5 × 7
 #>   id                          norm_iri tree_path parent_id lemma type  from_path
 #>   <chr>                       <chr>    <chr>     <chr>     <chr> <chr> <chr>    
