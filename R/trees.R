@@ -397,6 +397,15 @@ tree_move <- function(data, moves, keep = TRUE, delim = ">") {
       length(unique(data$tree_path)) == nrow(data)
   )
 
+  # Ignore moves whose source node does not exist in the data.
+  # Moves without from_path (pure creation) are kept.
+  unused <- dplyr::anti_join(moves, data, by = c("from_path" = "tree_path"))
+  moves <- dplyr::semi_join(moves, data, by = c("from_path" = "tree_path"))
+
+  if (length(unused) > 0) {
+    message("Ignoring moves with unknown from_path: ", paste(unused$from_path, collapse = ", "))
+  }
+
   # 2. Create missing ancestor nodes of the target paths
 
   # Paths that will be occupied by moved nodes, they must not be created
