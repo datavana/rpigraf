@@ -30,9 +30,11 @@ tree_add_path(data, col_id, col_parent_id, col_lemma, delim = "/")
 
 - delim:
 
-  Character that glues together the path elements. Set to NULL to create
-  a vector instead.
+  Character that glues together the path elements. In the lemma column,
+  the delimiter will be replaced by a html entity to prevent conflicts.
+  Set to NULL to create a vector of parent lemmas instead.
 
 ## Value
 
-A data frame with the additional column tree_path
+A data frame with the additional column tree_path. If it existed, it
+will be overwritten. Delimiters will be replaced in the lemma column.

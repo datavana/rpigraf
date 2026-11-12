@@ -87,9 +87,12 @@
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_add_ancestor.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_add_level.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_add_mptt.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/tree_add_parent.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_add_path.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_bind_ancestors.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_get_nodes.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/tree_move.html</loc></url>
+<url><loc>https://datavana.github.io/rpigraf/reference/tree_split_path.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/tree_stack_ancestors.html</loc></url>
 <url><loc>https://datavana.github.io/rpigraf/reference/unescape_html.html</loc></url>
 </urlset>

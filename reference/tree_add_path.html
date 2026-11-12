@@ -73,12 +73,16 @@ Lemmata are concatenated using a slash - existing slashes are replaced by the en
 
 
 <dt id="arg-delim">delim<a class="anchor" aria-label="anchor" href="#arg-delim"></a></dt>
-<dd><p>Character that glues together the path elements. Set to NULL to create a vector instead.</p></dd>
+<dd><p>Character that glues together the path elements.
+In the lemma column, the delimiter will be replaced by a html entity to prevent conflicts.
+Set to NULL to create a vector of parent lemmas instead.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with the additional column tree_path</p>
+    <p>A data frame with the additional column tree_path.
+If it existed, it will be overwritten.
+Delimiters will be replaced in the lemma column.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

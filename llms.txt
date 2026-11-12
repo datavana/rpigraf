@@ -223,12 +223,16 @@ for further examnples.
   : Add level, thread and order
 - [`tree_add_mptt()`](https://datavana.github.io/rpigraf/reference/tree_add_mptt.md)
   : Adds left and right values to the dataframe
+- [`tree_add_parent()`](https://datavana.github.io/rpigraf/reference/tree_add_parent.md)
+  : Add parent IDs to a tree data frame
 - [`tree_add_path()`](https://datavana.github.io/rpigraf/reference/tree_add_path.md)
   : Add a column holding the path of each node.
 - [`tree_bind_ancestors()`](https://datavana.github.io/rpigraf/reference/tree_bind_ancestors.md)
   : Row bind all ancestors of the selected nodes
 - [`tree_get_nodes()`](https://datavana.github.io/rpigraf/reference/tree_get_nodes.md)
   : Get all distinct nodes in an edge list
+- [`tree_move()`](https://datavana.github.io/rpigraf/reference/tree_move.md)
+  : Move nodes in a tree
 - [`tree_stack_ancestors()`](https://datavana.github.io/rpigraf/reference/tree_stack_ancestors.md)
   : For each node, add each ancestor's id
 
