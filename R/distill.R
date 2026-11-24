@@ -128,17 +128,20 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
 
   if (annos) {
 
+    # Cumulate annotated property ids
+    props_annotated <- c()
+
     # Items
     items <- distill_items(df, NULL, cols = c("property"))
 
     items$items_id <- items$id
     items <- items[, c("property","articles_id", "sections_id", "items_id")]
     items <- stats::na.omit(items)
-    items <- dplyr::inner_join(props, items, by=c("id"="property"))
-    items <- drop_empty_columns(items)
 
     if (nrow(items) > 0) {
-      props <- dplyr::anti_join(props, items, by="id")
+      items <- dplyr::inner_join(props, items, by=c("id"="property"))
+      items <- drop_empty_columns(items)
+      props_annotated <- c(props_annotated, items$id)
     }
 
 
@@ -147,12 +150,12 @@ distill_properties <- function(df, type = NULL, cols = c(), annos = FALSE, level
 
     if (nrow(links) > 0) {
       links <- dplyr::inner_join(props, links, by=c("id"="to_id"))
+      links <- drop_empty_columns(links)
+      props_annotated <- c(props_annotated, links$id)
     }
 
-    if (nrow(links) > 0) {
-      links <- drop_empty_columns(links)
-      props <- dplyr::anti_join(props, links, by="id")
-    }
+    # Drop unused properties
+    props <- dplyr::filter(props, ! (props$id %in% props_annotated))
 
     props <- dplyr::bind_rows(props, links, items)
   }
